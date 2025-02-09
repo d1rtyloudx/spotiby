@@ -148,7 +148,6 @@ services:
     networks:
       image:
 
-
   tracks_db:
     image: postgres:13.3
     container_name: tracks_postgres
