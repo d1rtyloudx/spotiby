@@ -48,6 +48,7 @@ services:
     networks:
       auth:
       image:
+      audio:
 
   redis:
     image: redis:7.4.2
@@ -114,6 +115,7 @@ services:
       image:
 
   auth-service :
+    build: ./user-service
     image: auth_backend:latest
     container_name: auth_backend
     ports:
@@ -130,6 +132,7 @@ services:
       auth:
 
   image-service:
+    build: ./image-service
     image: image_backend:latest
     container_name: image_backend
     ports:
@@ -158,25 +161,28 @@ services:
       - trackdb-data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
+    networks:
+      audio:
 
-  #track_service:
-  #  container_name: track_backend
-  #  restart: always
-  #  image: audio_backend:latest
-  #  ports:
-  #    - "8083:8080"
-  #  depends_on:
-  #    - tracks_db
-  #    - audio_minio
-  #  environment:
-  #    SPRING_DATASOURCE_URL: "jdbc:postgresql://tracks_postgres:5433/tracks_db"
-  #    JAVA_OPTS: "-Xmx512m"
-  #    MINIO_BUCKED: "audio"
-  #    MINIO_URL: "http://audio_minio:9003"
-  #    MINIO_ACCESS_KEY: "admin"
-  #    MINIO_SECRET_KEY: "adminadmin"
-  #  networks:
-  #    - audio
+  track_service:
+    restart: always
+    build: ./tracks-svc
+    image: audio_backend:latest
+    container_name: track_backend
+    ports:
+      - "8083:8080"
+    depends_on:
+      - tracks_db
+      - audio_minio
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://tracks_postgres:5432/tracks_db"
+      JAVA_OPTS: "-Xmx512m"
+      MINIO_BUCKED: "audio"
+      MINIO_URL: "http://audio_minio:9003"
+      MINIO_ACCESS_KEY: "admin"
+      MINIO_SECRET_KEY: "adminadmin"
+    networks:
+      - audio
 
   minio:
     image: minio/minio
