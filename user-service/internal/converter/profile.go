@@ -1,8 +1,8 @@
 package converter
 
 import (
-	"user-service/internal/domain/model"
-	"user-service/internal/dto"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/domain/model"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/dto"
 )
 
 func ProfileToProfileDTO(profile model.Profile) dto.Profile {

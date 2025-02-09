@@ -3,9 +3,9 @@ package minio
 import (
 	"context"
 	"fmt"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/domain/model"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
-	"image-service/internal/domain/model"
 )
 
 type ImageStorage struct {

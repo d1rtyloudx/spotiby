@@ -2,11 +2,11 @@ package middleware
 
 import (
 	"errors"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/service/auth"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"net/http"
 	"strings"
-	"user-service/internal/service/auth"
 )
 
 var (

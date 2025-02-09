@@ -3,11 +3,11 @@ package auth
 import (
 	"context"
 	"errors"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/dto"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/http/middleware"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/service/auth"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"user-service/internal/dto"
-	"user-service/internal/http/middleware"
-	"user-service/internal/service/auth"
 )
 
 type authService interface {

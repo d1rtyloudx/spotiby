@@ -2,11 +2,11 @@ package auth
 
 import (
 	"fmt"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/domain/model"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/dto"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"time"
-	"user-service/internal/domain/model"
-	"user-service/internal/dto"
 )
 
 type AccessClaims struct {

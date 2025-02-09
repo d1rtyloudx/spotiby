@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"github.com/d1rtyloudx/spotiby-pkg/lib"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/dto"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/http/middleware"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/service/profile"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"user-service/internal/dto"
-	"user-service/internal/http/middleware"
-	"user-service/internal/service/profile"
 )
 
 type profileService interface {

@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/d1rtyloudx/spotiby-pkg/lib"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/domain/model"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/storage"
 	"github.com/jmoiron/sqlx"
-	"user-service/internal/domain/model"
-	"user-service/internal/storage"
 )
 
 type ProfileStorage struct {

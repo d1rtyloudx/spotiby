@@ -3,10 +3,10 @@ package image
 import (
 	"context"
 	"errors"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/config"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/domain/model"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
-	"image-service/internal/config"
-	"image-service/internal/domain/model"
 	"net/http"
 )
 

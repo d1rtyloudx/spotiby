@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/d1rtyloudx/spotiby-pkg/logger"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/app"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/config"
 	"github.com/joho/godotenv"
-	"image-service/internal/app"
-	"image-service/internal/config"
 )
 
 func main() {

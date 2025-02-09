@@ -1,4 +1,4 @@
-module user-service
+module github.com/d1rtyloudx/spotiby/user-service
 
 go 1.23
 

@@ -3,8 +3,8 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/http/image"
 	"go.uber.org/zap"
-	"image-service/internal/http/image"
 	"net/http"
 )
 

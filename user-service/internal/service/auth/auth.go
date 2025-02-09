@@ -3,13 +3,13 @@ package auth
 import (
 	"context"
 	"errors"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/config"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/domain/model"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/dto"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/storage"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"time"
-	"user-service/internal/config"
-	"user-service/internal/domain/model"
-	"user-service/internal/dto"
-	"user-service/internal/storage"
 )
 
 var (

@@ -1,4 +1,4 @@
-module image-service
+module github.com/d1rtyloudx/spotiby/user-service
 
 go 1.23
 
@@ -11,6 +11,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.84
 	github.com/rabbitmq/amqp091-go v1.10.0
 	go.uber.org/zap v1.27.0
+	golang.org/x/net v0.33.0
 )
 
 require (
@@ -29,7 +30,6 @@ require (
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
-	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect

@@ -3,11 +3,11 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/http/auth"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/http/middleware"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/http/profile"
 	"go.uber.org/zap"
 	"net/http"
-	"user-service/internal/http/auth"
-	"user-service/internal/http/middleware"
-	"user-service/internal/http/profile"
 )
 
 func (a *App) runHTTPServer(

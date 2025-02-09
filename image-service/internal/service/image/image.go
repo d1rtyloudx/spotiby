@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/d1rtyloudx/spotiby-pkg/rabbitmq"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/config"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/domain/model"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/dto"
 	"github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
-	"image-service/internal/config"
-	"image-service/internal/domain/model"
-	"image-service/internal/dto"
 	"time"
 )
 

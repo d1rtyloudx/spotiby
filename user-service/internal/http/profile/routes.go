@@ -1,8 +1,8 @@
 package profile
 
 import (
+	"github.com/d1rtyloudx/spotiby/user-service/internal/http/middleware"
 	"github.com/labstack/echo/v4"
-	"user-service/internal/http/middleware"
 )
 
 func MapProfileRoutes(profileGroup *echo.Group, h *Handlers, authMiddleware *middleware.AuthMiddleware) {

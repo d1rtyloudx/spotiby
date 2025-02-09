@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"github.com/d1rtyloudx/spotiby-pkg/lib"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/converter"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/domain/model"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/dto"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/storage"
 	"go.uber.org/zap"
-	"user-service/internal/converter"
-	"user-service/internal/domain/model"
-	"user-service/internal/dto"
-	"user-service/internal/storage"
 )
 
 var (

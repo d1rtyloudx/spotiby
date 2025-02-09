@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/d1rtyloudx/spotiby-pkg/rabbitmq"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/config"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/dto"
 	"github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
-	"user-service/internal/config"
-	"user-service/internal/dto"
 )
 
 type profileUpdater interface {
