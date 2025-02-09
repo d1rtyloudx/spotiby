@@ -43,7 +43,7 @@ services:
     depends_on:
       - auth-service
       - image-service
-      #- track_service
+      - track_service
     restart: unless-stopped
     networks:
       auth:
@@ -147,7 +147,6 @@ services:
         condition: service_started
     networks:
       image:
-
   tracks_db:
     image: postgres:13.3
     container_name: tracks_postgres
