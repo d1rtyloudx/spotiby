@@ -171,12 +171,12 @@ services:
       - "8083:8080"
     depends_on:
       - tracks_db
-      - audio_minio
+      - minio1
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://tracks_postgres:5432/tracks_db"
       JAVA_OPTS: "-Xmx512m"
       MINIO_BUCKED: "audio"
-      MINIO_URL: "http://audio_minio:9003"
+      MINIO_URL: "http://minio1:9000"
       MINIO_ACCESS_KEY: "admin"
       MINIO_SECRET_KEY: "adminadmin"
     networks:
@@ -209,9 +209,9 @@ services:
     networks:
       image:
 
-  audio_minio:
+  minio1:
     image: minio/minio:latest
-    container_name: audio_minio
+    container_name: minio1
     environment:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=adminadmin
