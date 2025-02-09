@@ -15,7 +15,7 @@ token:
 rabbitmq:
   connection:
     port: 5672
-    host: rabbitmq
+    host: image_broker
     username: guest
   image_binding:
     queue_name: profile_image

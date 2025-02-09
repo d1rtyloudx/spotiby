@@ -43,12 +43,11 @@ services:
     depends_on:
       - auth-service
       - image-service
-      - track_service
+      #- track_service
     restart: unless-stopped
     networks:
       auth:
       image:
-      audio:
 
   redis:
     image: redis:7.4.2
@@ -89,7 +88,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:4.0.5-management
-    container_name: rabbitmq
+    container_name: image_broker
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -137,10 +136,12 @@ services:
       - "8081:8081"
     restart: unless-stopped
     depends_on:
-      rabbitmq:
-        condition: service_healthy
       minio:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
     networks:
       image:
 
