@@ -1,0 +1,27 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  application:
+    name:
+      tracks-svc
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tracks_db?currentSchema=public
+    username: user
+    password: pass
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+minio:
+  bucket: audio
+  url: http://localhost:9000
+  accessKey: admin
+  secretKey: adminadmin
+ffmpeg:
+  path: /usr/bin/ffmpeg
+logging:
+  level:
+    web: trace
