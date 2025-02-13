@@ -29,7 +29,7 @@ public class AudioServiceImpl implements AudioService {
 
 
     @Override
-    public String upload(MultipartFile file, UUID trackId) {
+    public String upload(MultipartFile file, String trackId) {
         try {
             createBucket();
         } catch (Exception e) {
@@ -38,7 +38,7 @@ public class AudioServiceImpl implements AudioService {
         if (file.isEmpty() || file.getOriginalFilename() == null || (!file.getOriginalFilename().endsWith(".mp3") && !file.getOriginalFilename().endsWith(".mp4"))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong file name or extension");
         }
-        String fileName = trackId.toString() + ".mp4";
+        String fileName = trackId + ".mp4";
 
         if(file.getOriginalFilename().endsWith(".mp3")) {
             File convertedFile = convertMp3ToAac(file);

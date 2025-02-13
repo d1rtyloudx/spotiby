@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
-import java.util.UUID;
 
 @Entity
 @Table(name = "track", schema = "public")
@@ -16,12 +15,12 @@ import java.util.UUID;
 @Setter
 public class Track {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
     private String title;
     private Long durationMs;
-    private Long authorId;
-    private String coverUri; //todo broker: bind queue with exchange
+    private String authorId;
+    private String coverUrl; //todo broker: bind queue with exchange
     @Temporal(TemporalType.TIMESTAMP)
     private Date uploadDate;
 }

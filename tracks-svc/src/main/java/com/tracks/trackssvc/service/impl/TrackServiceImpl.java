@@ -1,11 +1,16 @@
 package com.tracks.trackssvc.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tracks.trackssvc.model.Track;
 import com.tracks.trackssvc.repository.TrackRepository;
 import com.tracks.trackssvc.service.TrackService;
 import com.tracks.trackssvc.web.dto.TrackUploadDto;
+import com.tracks.trackssvc.web.dto.UpdateTrackCoverDto;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -16,19 +21,18 @@ import ws.schild.jave.MultimediaObject;
 import ws.schild.jave.info.MultimediaInfo;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.CopyOption;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
-import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class TrackServiceImpl implements TrackService {
     private final TrackRepository trackRepository;
     private final AudioServiceImpl audioService;
-
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -71,5 +75,24 @@ public class TrackServiceImpl implements TrackService {
         trackToAdd.setTitle(trackUploadDto.getTitle());
         trackToAdd.setUploadDate(new Date());
         return trackToAdd;
+    }
+
+    @Transactional
+    @RabbitListener(queues = "track_image")
+    public void listenImageQueue(Message message) {
+        String body = new String(message.getBody(), StandardCharsets.UTF_8);
+        System.out.println(body);
+        UpdateTrackCoverDto dto = null;
+        try {
+            dto = objectMapper.readValue(body, UpdateTrackCoverDto.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        Optional<Track> track = trackRepository.findById(dto.getId());
+        if(track.isPresent()) {
+            Track foundTrack = track.get();
+            foundTrack.setCoverUrl(dto.getAvatarUrl());
+            trackRepository.save(foundTrack);
+        } else return;
     }
 }

@@ -10,6 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 public class TrackUploadDto {
     private String title;
-    private Long authorId;
+    private String authorId;
     private MultipartFile audioFile;
 }

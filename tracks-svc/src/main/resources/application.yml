@@ -15,6 +15,13 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
+  rabbitmq:
+    host: image_broker
+    password: guest
+    username: guest
+    port: 5672
+    virtual-host: /
+
 minio:
   bucket: audio
   url: audio_minio:9002
