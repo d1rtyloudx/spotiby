@@ -24,6 +24,16 @@ rabbitmq:
     routing_key: profile
     concurrency: 10
     consumer_tag: image-consumer
+kafka:
+  connection:
+    brokers: [ "kafka:29092" ]
+  topics:
+    create_profile_topic:
+      topic_name: profile_create
+    update_profile_topic:
+      topic_name: profile_update
+    delete_profile_topic:
+      topic_name: profile_delete
 redis:
   port: 6379
   host: auth_redis

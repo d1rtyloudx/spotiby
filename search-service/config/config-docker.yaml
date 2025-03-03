@@ -1,0 +1,39 @@
+http:
+  port: 8084
+  write_timeout: 5s
+  read_timeout: 5s
+  shutdown_timeout: 10s
+elastic:
+  connection:
+    addresses: [ "http://node01:9200" ]
+    username: ""
+  indexes:
+    profile_index:
+      path: ""
+      name: "profile"
+      alias: ""
+    playlist_index:
+      path: ""
+      name: "playlist"
+      alias: ""
+    track_index:
+      path: ""
+      name: "track"
+      alias: ""
+kafka:
+  connection:
+    brokers: [ "kafka:29092" ]
+    group_id: profile_consumer_group
+  topics:
+    create_profile_topic:
+      topic_name: profile_create
+      partitions: 10
+      replication_factor: 1
+    update_profile_topic:
+      topic_name: profile_update
+      partitions: 10
+      replication_factor: 1
+    delete_profile_topic:
+      topic_name: profile_delete
+      partitions: 10
+      replication_factor: 1

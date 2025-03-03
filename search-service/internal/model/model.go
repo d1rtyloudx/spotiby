@@ -1,5 +1,14 @@
 package model
 
+import "github.com/d1rtyloudx/spotiby-pkg/lib"
+
+type SearchResponse struct {
+	Profiles   []Profile              `json:"profiles"`
+	Playlists  []Playlist             `json:"playlists"`
+	Tracks     []Track                `json:"tracks"`
+	Pagination lib.PaginationResponse `json:"pagination"`
+}
+
 type Profile struct {
 	ID           string `json:"id"`
 	DisplayName  string `json:"display_name"`

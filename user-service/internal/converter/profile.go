@@ -8,6 +8,7 @@ import (
 func ProfileToProfileDTO(profile model.Profile) dto.Profile {
 	return dto.Profile{
 		ID:           profile.ID,
+		DisplayName:  profile.DisplayName,
 		FirstName:    profile.FirstName,
 		LastName:     profile.LastName,
 		Description:  profile.Description,
@@ -19,6 +20,7 @@ func ProfileToProfileDTO(profile model.Profile) dto.Profile {
 func ProfileDTOToProfile(profile dto.Profile) model.Profile {
 	return model.Profile{
 		ID:           profile.ID,
+		DisplayName:  profile.DisplayName,
 		FirstName:    profile.FirstName,
 		LastName:     profile.LastName,
 		Description:  profile.Description,

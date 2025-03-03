@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+//TODO remove from the service-pkg
+
 type AccessClaims struct {
 	jwt.RegisteredClaims
 	Role        string `json:"role"`
@@ -27,7 +29,7 @@ func (s *Service) newAccessToken(credentials model.Credential, profileID string)
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.New().String(),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.cfg.AccessTTL)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.tokenCfg.AccessTTL)),
 			Subject:   credentials.ID,
 		},
 		Role:        credentials.Role,
@@ -36,7 +38,7 @@ func (s *Service) newAccessToken(credentials model.Credential, profileID string)
 		IsConfirmed: credentials.IsConfirmed,
 	})
 
-	tokenString, err := token.SignedString([]byte(s.cfg.AccessSecret))
+	tokenString, err := token.SignedString([]byte(s.tokenCfg.AccessSecret))
 	if err != nil {
 		return "", err
 	}
@@ -49,13 +51,13 @@ func (s *Service) newRefreshToken(credentialID string, profileID string) (string
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.New().String(),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.cfg.RefreshTTL)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.tokenCfg.RefreshTTL)),
 			Subject:   credentialID,
 		},
 		ProfileID: profileID,
 	})
 
-	tokenString, err := token.SignedString([]byte(s.cfg.RefreshSecret))
+	tokenString, err := token.SignedString([]byte(s.tokenCfg.RefreshSecret))
 	if err != nil {
 		return "", err
 	}
@@ -70,7 +72,7 @@ func (s *Service) ParseAccessToken(tokenString string) (AccessClaims, error) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte(s.cfg.AccessSecret), nil
+		return []byte(s.tokenCfg.AccessSecret), nil
 	})
 	if err != nil {
 		return AccessClaims{}, err
@@ -86,7 +88,7 @@ func (s *Service) parseRefreshToken(tokenString string) (RefreshClaims, error) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte(s.cfg.RefreshSecret), nil
+		return []byte(s.tokenCfg.RefreshSecret), nil
 	})
 	if err != nil {
 		return RefreshClaims{}, err

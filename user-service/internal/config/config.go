@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"github.com/d1rtyloudx/spotiby-pkg/kafka"
 	"github.com/d1rtyloudx/spotiby-pkg/postgres"
 	"github.com/d1rtyloudx/spotiby-pkg/rabbitmq"
 	"github.com/d1rtyloudx/spotiby-pkg/redis"
@@ -14,8 +15,20 @@ type Config struct {
 	HTTP     HTTPConfig      `yaml:"http"`
 	Postgres postgres.Config `yaml:"postgres"`
 	RabbitMQ RabbitMQConfig  `yaml:"rabbitmq"`
+	Kafka    KafkaConfig     `yaml:"kafka"`
 	Token    TokenConfig     `yaml:"token"`
 	Redis    redis.Config    `yaml:"redis"`
+}
+
+type KafkaConfig struct {
+	Connection kafka.Config `yaml:"connection"`
+	Topics     KafkaTopics  `yaml:"topics"`
+}
+
+type KafkaTopics struct {
+	CreateProfileTopic kafka.TopicConfig `yaml:"create_profile_topic"`
+	UpdateProfileTopic kafka.TopicConfig `yaml:"update_profile_topic"`
+	DeleteProfileTopic kafka.TopicConfig `yaml:"delete_profile_topic"`
 }
 
 type HTTPConfig struct {

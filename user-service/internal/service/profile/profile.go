@@ -2,13 +2,18 @@ package profile
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"github.com/d1rtyloudx/spotiby-pkg/constants"
+	kafkapkg "github.com/d1rtyloudx/spotiby-pkg/kafka"
 	"github.com/d1rtyloudx/spotiby-pkg/lib"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/config"
 	"github.com/d1rtyloudx/spotiby/user-service/internal/converter"
 	"github.com/d1rtyloudx/spotiby/user-service/internal/domain/model"
 	"github.com/d1rtyloudx/spotiby/user-service/internal/dto"
-	"github.com/d1rtyloudx/spotiby/user-service/internal/storage"
+	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
+	"time"
 )
 
 var (
@@ -18,7 +23,7 @@ var (
 type profileStorage interface {
 	Get(ctx context.Context, pageQuery lib.PaginationQuery) ([]model.Profile, lib.PaginationResponse, error)
 	GetByID(ctx context.Context, id string) (model.Profile, error)
-	Update(ctx context.Context, profile model.Profile) error
+	Update(ctx context.Context, profile model.Profile) (model.Profile, error)
 	GetFollows(ctx context.Context, profileID string, pageQuery lib.PaginationQuery) ([]model.Profile, lib.PaginationResponse, error)
 	FollowProfile(ctx context.Context, followerID string, followeeID string) error
 	UnfollowProfile(ctx context.Context, followerID string, followeeID string) error
@@ -26,12 +31,16 @@ type profileStorage interface {
 
 type Service struct {
 	profileStorage profileStorage
+	producer       *kafkapkg.Producer
 	log            *zap.Logger
+	kafkaTopics    *config.KafkaTopics
 }
 
-func New(profileStorage profileStorage, log *zap.Logger) *Service {
+func New(profileStorage profileStorage, producer *kafkapkg.Producer, kafkaTopics *config.KafkaTopics, log *zap.Logger) *Service {
 	return &Service{
 		profileStorage: profileStorage,
+		producer:       producer,
+		kafkaTopics:    kafkaTopics,
 		log:            log,
 	}
 }
@@ -61,7 +70,7 @@ func (s *Service) GetByID(ctx context.Context, id string) (dto.Profile, error) {
 
 	profile, err := s.profileStorage.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, storage.ErrNotFound) {
+		if errors.Is(err, constants.ErrNotFound) {
 			return dto.Profile{}, ErrProfileNotFound
 		}
 		childLog.Error("failed to get profile by id", zap.Error(err))
@@ -80,7 +89,7 @@ func (s *Service) Update(ctx context.Context, id string, req dto.UpdateProfileRe
 		zap.Any("data", req),
 	)
 
-	err := s.profileStorage.Update(ctx, model.Profile{
+	profile, err := s.profileStorage.Update(ctx, model.Profile{
 		ID:          id,
 		DisplayName: req.DisplayName,
 		FirstName:   req.FirstName,
@@ -91,6 +100,21 @@ func (s *Service) Update(ctx context.Context, id string, req dto.UpdateProfileRe
 	if err != nil {
 		childLog.Error("failed to update profile", zap.Error(err))
 		return err
+	}
+
+	profileBytes, err := json.Marshal(converter.ProfileToProfileDTO(profile))
+	if err != nil {
+		childLog.Error("failed to marshal profile", zap.Error(err))
+		return err
+	}
+
+	err = s.producer.PublishMessage(ctx, kafka.Message{
+		Topic: s.kafkaTopics.UpdateProfileTopic.TopicName,
+		Value: profileBytes,
+		Time:  time.Now(),
+	})
+	if err != nil {
+		childLog.Error("failed to publish profile message", zap.Error(err))
 	}
 
 	childLog.Info("successfully update profile")

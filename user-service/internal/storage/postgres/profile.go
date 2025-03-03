@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/d1rtyloudx/spotiby-pkg/constants"
 	"github.com/d1rtyloudx/spotiby-pkg/lib"
 	"github.com/d1rtyloudx/spotiby/user-service/internal/domain/model"
-	"github.com/d1rtyloudx/spotiby/user-service/internal/storage"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -144,7 +144,7 @@ func (s *ProfileStorage) getByField(ctx context.Context, field string, value int
 		&profile.CredentialID,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.Profile{}, storage.ErrNotFound
+			return model.Profile{}, constants.ErrNotFound
 		}
 		return model.Profile{}, fmt.Errorf("%s - s.db.QueryRowContext: %w", op, err)
 	}
@@ -152,13 +152,14 @@ func (s *ProfileStorage) getByField(ctx context.Context, field string, value int
 	return profile, nil
 }
 
-func (s *ProfileStorage) Update(ctx context.Context, profile model.Profile) error {
+func (s *ProfileStorage) Update(ctx context.Context, profile model.Profile) (model.Profile, error) {
 	const op = "postgres.ProfileStorage.Update"
 
 	builder := squirrel.
 		Update("profiles").
 		Where(squirrel.Eq{"id": profile.ID}).
-		PlaceholderFormat(squirrel.Dollar)
+		PlaceholderFormat(squirrel.Dollar).
+		Suffix("RETURNING *")
 
 	if profile.FirstName != "" {
 		builder = builder.Set("first_name", profile.FirstName)
@@ -182,15 +183,24 @@ func (s *ProfileStorage) Update(ctx context.Context, profile model.Profile) erro
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return fmt.Errorf("%s - builder.ToSql: %w", op, err)
+		return model.Profile{}, fmt.Errorf("%s - builder.ToSql: %w", op, err)
 	}
 
-	_, err = s.db.ExecContext(ctx, query, args...)
-	if err != nil {
-		return fmt.Errorf("%s - s.db.ExecContext: %w", op, err)
+	var updated model.Profile
+	row := s.db.QueryRowContext(ctx, query, args...)
+	if err := row.Scan(
+		&updated.ID,
+		&updated.DisplayName,
+		&updated.FirstName,
+		&updated.LastName,
+		&updated.Description,
+		&updated.CredentialID,
+		&updated.AvatarURL,
+	); err != nil {
+		return model.Profile{}, fmt.Errorf("%s - s.db.ExecContext: %w", op, err)
 	}
 
-	return nil
+	return updated, nil
 }
 
 func (s *ProfileStorage) FollowProfile(ctx context.Context, followerID string, followeeID string) error {

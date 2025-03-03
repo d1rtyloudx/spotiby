@@ -1,4 +1,4 @@
-package manager
+package profile
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 
 type indexer interface {
 	IndexProfile(ctx context.Context, profile model.Profile) error
+	DeleteProfile(ctx context.Context, dto model.DeleteProfile) error
 }
 
 type ProcessManager struct {
@@ -49,16 +50,16 @@ func (m *ProcessManager) ProcessMessages(ctx context.Context, r *kafka.Reader, w
 
 		switch msg.Topic {
 		case m.topics.CreateProfileTopic.TopicName:
-			m.processCreateProfile(ctx, r, msg)
+			m.processIndexProfile(ctx, r, msg)
 		case m.topics.UpdateProfileTopic.TopicName:
-			m.processUpdateProfile(ctx, r, msg)
+			m.processIndexProfile(ctx, r, msg)
 		case m.topics.DeleteProfileTopic.TopicName:
 			m.processDeleteProfile(ctx, r, msg)
 		}
 	}
 }
 
-func (m *ProcessManager) processCreateProfile(ctx context.Context, r *kafka.Reader, msg kafka.Message) {
+func (m *ProcessManager) processIndexProfile(ctx context.Context, r *kafka.Reader, msg kafka.Message) {
 	var profileMsg model.Profile
 	if err := json.Unmarshal(msg.Value, &profileMsg); err != nil {
 		m.log.Warn("failed to unmarshal profile message", zap.Error(err))
@@ -75,10 +76,19 @@ func (m *ProcessManager) processCreateProfile(ctx context.Context, r *kafka.Read
 	}
 }
 
-func (m *ProcessManager) processUpdateProfile(ctx context.Context, r *kafka.Reader, msg kafka.Message) {
-
-}
-
 func (m *ProcessManager) processDeleteProfile(ctx context.Context, r *kafka.Reader, msg kafka.Message) {
+	var profileMsg model.DeleteProfile
+	if err := json.Unmarshal(msg.Value, &profileMsg); err != nil {
+		m.log.Warn("failed to unmarshal profile message", zap.Error(err))
+		return
+	}
 
+	err := m.indexer.DeleteProfile(ctx, profileMsg)
+	if err != nil {
+		return
+	}
+
+	if err := r.CommitMessages(ctx, msg); err != nil {
+		m.log.Warn("failed to commit messages", zap.Error(err))
+	}
 }

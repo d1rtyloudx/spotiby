@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/d1rtyloudx/spotiby-pkg/kafka"
 	"github.com/d1rtyloudx/spotiby-pkg/postgres"
 	"github.com/d1rtyloudx/spotiby-pkg/rabbitmq"
 	"github.com/d1rtyloudx/spotiby-pkg/redis"
@@ -49,8 +50,19 @@ func (a *App) Run() error {
 	profileStorage := postgresstorage.NewProfileStorage(db)
 	tokenBlacklist := rediscache.NewTokenBlacklist(client)
 
-	authService := authsvc.New(credentialStorage, profileStorage, tokenBlacklist, a.log, &a.cfg.Token)
-	profileService := profilesvc.New(profileStorage, a.log)
+	profileProducer := kafka.NewProducer(a.cfg.Kafka.Connection.Brokers)
+	defer profileProducer.Close() //wrap
+
+	authService := authsvc.New(
+		credentialStorage,
+		profileStorage,
+		tokenBlacklist,
+		profileProducer,
+		a.log,
+		&a.cfg.Kafka.Topics,
+		&a.cfg.Token,
+	)
+	profileService := profilesvc.New(profileStorage, profileProducer, &a.cfg.Kafka.Topics, a.log)
 
 	profileHandlers := profilehand.New(profileService)
 	authHandlers := authhand.New(authService)

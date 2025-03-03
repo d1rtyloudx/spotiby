@@ -2,11 +2,15 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"github.com/d1rtyloudx/spotiby-pkg/constants"
+	kafkapkg "github.com/d1rtyloudx/spotiby-pkg/kafka"
 	"github.com/d1rtyloudx/spotiby/user-service/internal/config"
+	"github.com/d1rtyloudx/spotiby/user-service/internal/converter"
 	"github.com/d1rtyloudx/spotiby/user-service/internal/domain/model"
 	"github.com/d1rtyloudx/spotiby/user-service/internal/dto"
-	"github.com/d1rtyloudx/spotiby/user-service/internal/storage"
+	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"time"
@@ -28,7 +32,7 @@ type profileProvider interface {
 }
 
 type credentialStorage interface {
-	Create(ctx context.Context, cred model.Credential) (string, error)
+	Create(ctx context.Context, cred model.Credential) (model.Profile, error)
 	Update(ctx context.Context, cred model.Credential) error
 	GetByUsername(ctx context.Context, userName string) (model.Credential, error)
 	GetByEmail(ctx context.Context, email string) (model.Credential, error)
@@ -39,23 +43,29 @@ type Service struct {
 	credentialStorage credentialStorage
 	profileProvider   profileProvider
 	tokenBlacklist    tokenBlacklist
+	producer          *kafkapkg.Producer
 	log               *zap.Logger
-	cfg               *config.TokenConfig
+	kafkaTopics       *config.KafkaTopics
+	tokenCfg          *config.TokenConfig
 }
 
 func New(
 	credentialsStorage credentialStorage,
 	profileProvider profileProvider,
 	tokenBlacklist tokenBlacklist,
+	producer *kafkapkg.Producer,
 	log *zap.Logger,
-	cfg *config.TokenConfig,
+	kafkaTopics *config.KafkaTopics,
+	tokenCfg *config.TokenConfig,
 ) *Service {
 	return &Service{
 		credentialStorage: credentialsStorage,
 		profileProvider:   profileProvider,
 		tokenBlacklist:    tokenBlacklist,
+		producer:          producer,
 		log:               log,
-		cfg:               cfg,
+		kafkaTopics:       kafkaTopics,
+		tokenCfg:          tokenCfg,
 	}
 }
 
@@ -72,23 +82,38 @@ func (s *Service) Register(ctx context.Context, req dto.RegisterRequest) (dto.Re
 		return dto.RegisterResponse{}, err
 	}
 
-	id, err := s.credentialStorage.Create(ctx, model.Credential{
+	profile, err := s.credentialStorage.Create(ctx, model.Credential{
 		Username: req.Username,
 		Email:    req.Email,
 		HashPass: hashPass,
 	})
 	if err != nil {
-		if errors.Is(err, storage.ErrAlreadyExists) {
+		if errors.Is(err, constants.ErrAlreadyExists) {
 			return dto.RegisterResponse{}, ErrUserAlreadyRegistered
 		}
 		childLog.Error("failed to register credential", zap.Error(err))
 		return dto.RegisterResponse{}, err
 	}
 
+	profileBytes, err := json.Marshal(converter.ProfileToProfileDTO(profile))
+	if err != nil {
+		childLog.Error("failed to marshal profile", zap.Error(err))
+	}
+
+	err = s.producer.PublishMessage(ctx, kafka.Message{
+		Topic: s.kafkaTopics.CreateProfileTopic.TopicName,
+		Value: profileBytes,
+		Time:  time.Now(),
+	})
+	if err != nil {
+		childLog.Error("failed to publish profile message", zap.Error(err))
+		return dto.RegisterResponse{}, err
+	}
+
 	childLog.Info("successfully registered")
 
 	return dto.RegisterResponse{
-		ID: id,
+		ID: profile.CredentialID,
 	}, nil
 }
 
@@ -100,7 +125,7 @@ func (s *Service) Login(ctx context.Context, req dto.LoginRequest) (dto.LoginRes
 
 	cred, err := s.credentialStorage.GetByUsername(ctx, req.Username)
 	if err != nil {
-		if errors.Is(err, storage.ErrNotFound) {
+		if errors.Is(err, constants.ErrNotFound) {
 			return dto.LoginResponse{}, ErrInvalidCredentials
 		}
 		childLog.Error("failed to get credential by username", zap.Error(err))
@@ -172,7 +197,7 @@ func (s *Service) UpdateUsername(ctx context.Context, id string, username string
 		Username: username,
 	})
 	if err != nil {
-		if errors.Is(err, storage.ErrAlreadyExists) {
+		if errors.Is(err, constants.ErrAlreadyExists) {
 			return ErrUserAlreadyRegistered
 		}
 		childLog.Error("failed to update username", zap.Error(err))

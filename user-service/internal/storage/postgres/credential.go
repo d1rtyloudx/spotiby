@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/d1rtyloudx/spotiby-pkg/constants"
 	"github.com/d1rtyloudx/spotiby/user-service/internal/domain/model"
-	"github.com/d1rtyloudx/spotiby/user-service/internal/storage"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
@@ -22,12 +22,12 @@ func NewCredentialStorage(db *sqlx.DB) *CredentialStorage {
 	}
 }
 
-func (s *CredentialStorage) Create(ctx context.Context, cred model.Credential) (string, error) {
+func (s *CredentialStorage) Create(ctx context.Context, cred model.Credential) (model.Profile, error) {
 	const op = "postgres.CredentialStorage.Create"
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return "", fmt.Errorf("%s - s.db.BeginTx: %w", op, err)
+		return model.Profile{}, fmt.Errorf("%s - s.db.BeginTx: %w", op, err)
 	}
 
 	defer func() {
@@ -46,7 +46,7 @@ func (s *CredentialStorage) Create(ctx context.Context, cred model.Credential) (
 		Suffix("RETURNING id").
 		ToSql()
 	if err != nil {
-		return "", fmt.Errorf("%s - squirrel.Insert: %w", op, err)
+		return model.Profile{}, fmt.Errorf("%s - squirrel.Insert: %w", op, err)
 	}
 
 	var credentialID string
@@ -54,34 +54,43 @@ func (s *CredentialStorage) Create(ctx context.Context, cred model.Credential) (
 	if err := row.Scan(&credentialID); err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) {
-			if pqErr.Code == storage.UniqueViolationCode {
-				return "", storage.ErrAlreadyExists
+			if pqErr.Code == constants.UniqueViolationCode {
+				return model.Profile{}, constants.ErrAlreadyExists
 			}
 		}
-		return "", fmt.Errorf("%s - tx.QueryRowContext: %w", op, err)
+		return model.Profile{}, fmt.Errorf("%s - tx.QueryRowContext: %w", op, err)
 	}
 
 	query, args, err = squirrel.
 		Insert("profiles").
-		Columns("credential_id").
-		Values(credentialID).
+		Columns("display_name", "credential_id").
+		Values(cred.Username, credentialID).
 		PlaceholderFormat(squirrel.Dollar).
-		Suffix("RETURNING id").
+		Suffix("RETURNING *").
 		ToSql()
 	if err != nil {
-		return "", fmt.Errorf("%s - squirrel.Insert: %w", op, err)
+		return model.Profile{}, fmt.Errorf("%s - squirrel.Insert: %w", op, err)
 	}
 
-	_, err = tx.ExecContext(ctx, query, args...)
-	if err != nil {
-		return "", fmt.Errorf("%s - tx.ExecContext: %w", op, err)
+	var profile model.Profile
+	row = tx.QueryRowContext(ctx, query, args...)
+	if err := row.Scan(
+		&profile.ID,
+		&profile.DisplayName,
+		&profile.FirstName,
+		&profile.LastName,
+		&profile.Description,
+		&profile.CredentialID,
+		&profile.AvatarURL,
+	); err != nil {
+		return model.Profile{}, fmt.Errorf("%s - row.Scan: %w", op, err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return "", fmt.Errorf("%s - tx.Commit: %w", op, err)
+		return model.Profile{}, fmt.Errorf("%s - tx.Commit: %w", op, err)
 	}
 
-	return credentialID, nil
+	return profile, nil
 }
 
 func (s *CredentialStorage) Update(ctx context.Context, cred model.Credential) error {
@@ -113,8 +122,8 @@ func (s *CredentialStorage) Update(ctx context.Context, cred model.Credential) e
 	if err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) {
-			if pqErr.Code == storage.UniqueViolationCode {
-				return storage.ErrAlreadyExists
+			if pqErr.Code == constants.UniqueViolationCode {
+				return constants.ErrAlreadyExists
 			}
 		}
 		return fmt.Errorf("%s - s.db.ExecContext: %w", op, err)
@@ -179,7 +188,7 @@ func (s *CredentialStorage) getByField(ctx context.Context, field string, value 
 		&creds.UpdatedAt,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.Credential{}, storage.ErrNotFound
+			return model.Credential{}, constants.ErrNotFound
 		}
 		return model.Credential{}, fmt.Errorf("%s - row.Scan: %w", op, err)
 	}
