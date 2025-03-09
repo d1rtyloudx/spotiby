@@ -5,14 +5,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tracks.trackssvc.model.Track;
 import com.tracks.trackssvc.repository.TrackRepository;
 import com.tracks.trackssvc.service.TrackService;
+import com.tracks.trackssvc.web.dto.TrackDto;
 import com.tracks.trackssvc.web.dto.TrackUploadDto;
-import com.tracks.trackssvc.web.dto.UpdateTrackCoverDto;
+import com.tracks.trackssvc.web.dto.UpdateCoverDto;
+import com.tracks.trackssvc.web.mapper.TrackMapper;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,18 +36,26 @@ public class TrackServiceImpl implements TrackService {
     private final TrackRepository trackRepository;
     private final AudioServiceImpl audioService;
     private final ObjectMapper objectMapper;
+    private final TrackMapper trackMapper;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
     @Transactional
-    public Track addTrack(TrackUploadDto trackUploadDto) {
+    public TrackDto addTrack(TrackUploadDto trackUploadDto) {
         Track trackToAdd = constructTrack(trackUploadDto);
         Track track = trackRepository.save(trackToAdd);
         audioService.upload(trackUploadDto.getAudioFile(), track.getId());
-        return track;
+        TrackDto trackDto = trackMapper.toDto(track);
+        try {
+            kafkaTemplate.send("tracks", (objectMapper.writeValueAsString(trackDto)));
+        } catch (JsonProcessingException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to serialize track", e);
+        }
+        return trackDto;
     }
 
-    public Page<Track> getTracks(Pageable pageable) {
-        return trackRepository.findAll(pageable);
+    public Page<TrackDto> getTracks(Pageable pageable) {
+        return trackRepository.findAll(pageable).map(trackMapper::toDto);
     }
 
     @NotNull
@@ -84,7 +95,6 @@ public class TrackServiceImpl implements TrackService {
         trackToAdd.setAuthorId(trackUploadDto.getAuthorId());
         trackToAdd.setTitle(trackUploadDto.getTitle());
         trackToAdd.setUploadDate(new Date());
-
         return trackToAdd;
     }
 
@@ -116,9 +126,9 @@ public class TrackServiceImpl implements TrackService {
     public void listenImageQueue(Message message) {
         String body = new String(message.getBody(), StandardCharsets.UTF_8);
         System.out.println(body);
-        UpdateTrackCoverDto dto;
+        UpdateCoverDto dto;
         try {
-            dto = objectMapper.readValue(body, UpdateTrackCoverDto.class);
+            dto = objectMapper.readValue(body, UpdateCoverDto.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

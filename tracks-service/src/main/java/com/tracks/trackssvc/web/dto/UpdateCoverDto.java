@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class UpdateTrackCoverDto {
+public class UpdateCoverDto {
     @JsonProperty("id")
     String id;
     @JsonProperty("avatar_url")

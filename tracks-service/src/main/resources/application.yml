@@ -7,7 +7,7 @@ spring:
     name:
       tracks-svc
   datasource:
-    url: jdbc:postgresql://tracks_postgres:5433/tracks_db?currentSchema=public
+    url: jdbc:postgresql://tracks_postgres:5434/tracks_db?currentSchema=public
     username: user
     password: pass
     driver-class-name: org.postgresql.Driver
@@ -21,10 +21,13 @@ spring:
     username: guest
     port: 5672
     virtual-host: /
+  kafka:
+    bootstrap-servers:
+      kafka:9092
 
 minio:
   bucket: audio
-  url: audio_minio:9002
+  url: minio1:9002
   accessKey: admin
   secretKey: adminadmin
 

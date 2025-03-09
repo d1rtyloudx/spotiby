@@ -1,25 +1,24 @@
 package com.tracks.trackssvc.web.dto;
 
-import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.util.Date;
+import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Data
-public class TrackDto {
+public class PlaylistDto {
     private String id;
     private String title;
     @JsonProperty("author_id")
     private String authorId;
     @JsonProperty("cover_url")
     private String coverUrl;
-    @JsonProperty("duration_ms")
-    private Long durationMs;
-    @JsonProperty("upload_date")
-    private Date uploadDate;
+    @JsonProperty("creation_date")
+    private Date createdAt;
+    private Set<TrackDto> tracks;
 }

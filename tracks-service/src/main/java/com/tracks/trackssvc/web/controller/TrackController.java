@@ -2,6 +2,7 @@ package com.tracks.trackssvc.web.controller;
 
 import com.tracks.trackssvc.model.Track;
 import com.tracks.trackssvc.service.TrackService;
+import com.tracks.trackssvc.web.dto.TrackDto;
 import com.tracks.trackssvc.web.dto.TrackUploadDto;
 import com.tracks.trackssvc.web.mapper.TrackMapper;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +21,11 @@ public class TrackController {
     private final TrackMapper trackMapper;
 
     @PostMapping(value = "/add", consumes = { "multipart/form-data" })
-    public Track addTrack(@ModelAttribute TrackUploadDto trackUploadDto) {
+    public TrackDto addTrack(@ModelAttribute TrackUploadDto trackUploadDto) {
         return trackService.addTrack(trackUploadDto);
     }
     @GetMapping("/")
-    public Page<Track> getTracks(Pageable pageable) {
+    public Page<TrackDto> getTracks(Pageable pageable) {
         return trackService.getTracks(pageable);
     }
 
