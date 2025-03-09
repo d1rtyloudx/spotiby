@@ -23,7 +23,7 @@ elastic:
 kafka:
   connection:
     brokers: [ "kafka:29092" ]
-    group_id: profile_consumer_group
+    group_id: consumer_group
   topics:
     create_profile_topic:
       topic_name: profile_create
@@ -35,5 +35,29 @@ kafka:
       replication_factor: 1
     delete_profile_topic:
       topic_name: profile_delete
+      partitions: 10
+      replication_factor: 1
+    create_track_topic:
+      topic_name: track_create
+      partitions: 10
+      replication_factor: 1
+    update_track_topic:
+      topic_name: track_update
+      partitions: 10
+      replication_factor: 1
+    delete_track_topic:
+      topic_name: track_delete
+      partitions: 10
+      replication_factor: 1
+    create_playlist_topic:
+      topic_name: playlist_create
+      partitions: 10
+      replication_factor: 1
+    update_playlist_topic:
+      topic_name: playlist_update
+      partitions: 10
+      replication_factor: 1
+    delete_playlist_topic:
+      topic_name: playlist_delete
       partitions: 10
       replication_factor: 1

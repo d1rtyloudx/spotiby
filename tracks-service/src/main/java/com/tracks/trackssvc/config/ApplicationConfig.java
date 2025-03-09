@@ -100,11 +100,11 @@ public class ApplicationConfig {
 
     @Bean
     public NewTopic topicTracks() {
-        return TopicBuilder.name("track_created").build();
+        return TopicBuilder.name("track_create").build();
     }
 
     @Bean
     public NewTopic topicPlaylists() {
-        return TopicBuilder.name("playlist_created").build();
+        return TopicBuilder.name("playlist_create").build();
     }
 }

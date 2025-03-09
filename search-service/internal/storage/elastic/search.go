@@ -160,24 +160,29 @@ func (s *SearchStorage) Search(ctx context.Context, term string, paginationQuery
 		source := hitMap["_source"].(map[string]interface{})
 		index := hitMap["_index"].(string)
 
+		sourceJSON, err := json.Marshal(source)
+		if err != nil {
+			continue
+		}
+
 		switch index {
 		case s.indexes.ProfileIndex.Name:
 			var profile model.Profile
-			if err := json.Unmarshal([]byte(fmt.Sprintf("%v", source)), &profile); err != nil {
+			if err := json.Unmarshal(sourceJSON, &profile); err != nil {
 				continue
 			}
 			searchResponse.Profiles = append(searchResponse.Profiles, profile)
 
 		case s.indexes.TrackIndex.Name:
 			var track model.Track
-			if err := json.Unmarshal([]byte(fmt.Sprintf("%v", source)), &track); err != nil {
+			if err := json.Unmarshal(sourceJSON, &track); err != nil {
 				continue
 			}
-			searchResponse.Tracks = append(searchResponse.Tracks)
+			searchResponse.Tracks = append(searchResponse.Tracks, track)
 
 		case s.indexes.PlaylistIndex.Name:
 			var playlist model.Playlist
-			if err := json.Unmarshal([]byte(fmt.Sprintf("%v", source)), &playlist); err != nil {
+			if err := json.Unmarshal(sourceJSON, &playlist); err != nil {
 				continue
 			}
 			searchResponse.Playlists = append(searchResponse.Playlists, playlist)

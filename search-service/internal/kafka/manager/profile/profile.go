@@ -12,7 +12,7 @@ import (
 
 type indexer interface {
 	IndexProfile(ctx context.Context, profile model.Profile) error
-	DeleteProfile(ctx context.Context, dto model.DeleteProfile) error
+	DeleteProfile(ctx context.Context, deleteProfile model.DeleteProfile) error
 }
 
 type ProcessManager struct {

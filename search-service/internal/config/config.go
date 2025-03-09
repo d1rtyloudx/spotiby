@@ -39,9 +39,15 @@ type KafkaConfig struct {
 }
 
 type KafkaTopics struct {
-	CreateProfileTopic kafka.TopicConfig `yaml:"create_profile_topic"`
-	UpdateProfileTopic kafka.TopicConfig `yaml:"update_profile_topic"`
-	DeleteProfileTopic kafka.TopicConfig `yaml:"delete_profile_topic"`
+	CreateProfileTopic  kafka.TopicConfig `yaml:"create_profile_topic"`
+	UpdateProfileTopic  kafka.TopicConfig `yaml:"update_profile_topic"`
+	DeleteProfileTopic  kafka.TopicConfig `yaml:"delete_profile_topic"`
+	CreateTrackTopic    kafka.TopicConfig `yaml:"create_track_topic"`
+	UpdateTrackTopic    kafka.TopicConfig `yaml:"update_track_topic"`
+	DeleteTrackTopic    kafka.TopicConfig `yaml:"delete_track_topic"`
+	CreatePlaylistTopic kafka.TopicConfig `yaml:"create_playlist_topic"`
+	UpdatePlaylistTopic kafka.TopicConfig `yaml:"update_playlist_topic"`
+	DeletePlaylistTopic kafka.TopicConfig `yaml:"delete_playlist_topic"`
 }
 
 func MustLoad() *Config {

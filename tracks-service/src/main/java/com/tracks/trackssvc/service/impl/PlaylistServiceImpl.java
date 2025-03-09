@@ -38,7 +38,7 @@ public class PlaylistServiceImpl implements PlaylistService {
         playlistEntity.setCreatedAt(new Date());
         PlaylistDto created_playlist = playlistMapper.toDto(playlistRepository.save(playlistEntity));
         try {
-            kafkaTemplate.send("playlists", objectMapper.writeValueAsString(created_playlist));
+            kafkaTemplate.send("playlist_create", objectMapper.writeValueAsString(created_playlist));
         } catch (JsonProcessingException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error while serialising playlist data", e);
         }

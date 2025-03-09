@@ -47,7 +47,7 @@ public class TrackServiceImpl implements TrackService {
         audioService.upload(trackUploadDto.getAudioFile(), track.getId());
         TrackDto trackDto = trackMapper.toDto(track);
         try {
-            kafkaTemplate.send("tracks", (objectMapper.writeValueAsString(trackDto)));
+            kafkaTemplate.send("track_create", (objectMapper.writeValueAsString(trackDto)));
         } catch (JsonProcessingException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to serialize track", e);
         }

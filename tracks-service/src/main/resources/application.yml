@@ -23,7 +23,7 @@ spring:
     virtual-host: /
   kafka:
     bootstrap-servers:
-      kafka:9092
+      kafka:29092
 
 minio:
   bucket: audio

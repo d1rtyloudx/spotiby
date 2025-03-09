@@ -38,6 +38,12 @@ func (a *App) getTopicGroup() []string {
 		a.cfg.Kafka.Topics.CreateProfileTopic.TopicName,
 		a.cfg.Kafka.Topics.UpdateProfileTopic.TopicName,
 		a.cfg.Kafka.Topics.DeleteProfileTopic.TopicName,
+		a.cfg.Kafka.Topics.CreateTrackTopic.TopicName,
+		a.cfg.Kafka.Topics.UpdateTrackTopic.TopicName,
+		a.cfg.Kafka.Topics.DeleteTrackTopic.TopicName,
+		a.cfg.Kafka.Topics.CreatePlaylistTopic.TopicName,
+		a.cfg.Kafka.Topics.UpdatePlaylistTopic.TopicName,
+		a.cfg.Kafka.Topics.DeletePlaylistTopic.TopicName,
 	}
 }
 
@@ -60,10 +66,52 @@ func (a *App) initKafkaTopics(ctx context.Context, conn *kafka.Conn) error {
 		ReplicationFactor: a.cfg.Kafka.Topics.DeleteProfileTopic.ReplicationFactor,
 	}
 
+	trackCreateTopic := kafka.TopicConfig{
+		Topic:             a.cfg.Kafka.Topics.CreateTrackTopic.TopicName,
+		NumPartitions:     a.cfg.Kafka.Topics.CreateTrackTopic.Partitions,
+		ReplicationFactor: a.cfg.Kafka.Topics.CreateTrackTopic.ReplicationFactor,
+	}
+
+	trackUpdateTopic := kafka.TopicConfig{
+		Topic:             a.cfg.Kafka.Topics.UpdateTrackTopic.TopicName,
+		NumPartitions:     a.cfg.Kafka.Topics.UpdateTrackTopic.Partitions,
+		ReplicationFactor: a.cfg.Kafka.Topics.UpdateTrackTopic.ReplicationFactor,
+	}
+
+	trackDeleteTopic := kafka.TopicConfig{
+		Topic:             a.cfg.Kafka.Topics.DeleteTrackTopic.TopicName,
+		NumPartitions:     a.cfg.Kafka.Topics.DeleteTrackTopic.Partitions,
+		ReplicationFactor: a.cfg.Kafka.Topics.DeleteTrackTopic.ReplicationFactor,
+	}
+
+	playlistCreateTopic := kafka.TopicConfig{
+		Topic:             a.cfg.Kafka.Topics.CreatePlaylistTopic.TopicName,
+		NumPartitions:     a.cfg.Kafka.Topics.CreatePlaylistTopic.Partitions,
+		ReplicationFactor: a.cfg.Kafka.Topics.CreatePlaylistTopic.ReplicationFactor,
+	}
+
+	playlistUpdateTopic := kafka.TopicConfig{
+		Topic:             a.cfg.Kafka.Topics.UpdatePlaylistTopic.TopicName,
+		NumPartitions:     a.cfg.Kafka.Topics.UpdatePlaylistTopic.Partitions,
+		ReplicationFactor: a.cfg.Kafka.Topics.UpdatePlaylistTopic.ReplicationFactor,
+	}
+
+	playlistDeleteTopic := kafka.TopicConfig{
+		Topic:             a.cfg.Kafka.Topics.DeletePlaylistTopic.TopicName,
+		NumPartitions:     a.cfg.Kafka.Topics.DeletePlaylistTopic.Partitions,
+		ReplicationFactor: a.cfg.Kafka.Topics.DeletePlaylistTopic.ReplicationFactor,
+	}
+
 	err := conn.CreateTopics(
 		profileCreateTopic,
 		profileUpdateTopic,
 		profileDeleteTopic,
+		trackCreateTopic,
+		trackUpdateTopic,
+		trackDeleteTopic,
+		playlistCreateTopic,
+		playlistUpdateTopic,
+		playlistDeleteTopic,
 	)
 	if err != nil {
 		a.log.Error("app.kafka.initKafkaTopics - conn.CreateTopics", zap.Error(err))

@@ -6,7 +6,7 @@ import (
 	kafkapkg "github.com/d1rtyloudx/spotiby-pkg/kafka"
 	"github.com/d1rtyloudx/spotiby/search-service/internal/config"
 	searchhand "github.com/d1rtyloudx/spotiby/search-service/internal/http/search"
-	profilemanager "github.com/d1rtyloudx/spotiby/search-service/internal/kafka/manager/profile"
+	trackmanager "github.com/d1rtyloudx/spotiby/search-service/internal/kafka/manager/track"
 	searchsvc "github.com/d1rtyloudx/spotiby/search-service/internal/service/search"
 	elasticstorage "github.com/d1rtyloudx/spotiby/search-service/internal/storage/elastic"
 	"github.com/labstack/echo/v4"
@@ -52,7 +52,8 @@ func (a *App) Run() error {
 
 	cg := kafkapkg.NewConsumerGroup(a.cfg.Kafka.Connection.Brokers, a.cfg.Kafka.Connection.GroupID, a.log)
 
-	processManager := profilemanager.NewProcessManager(searchService, &a.cfg.Kafka.Topics, a.log)
+	//profileProcessManager := profilemanager.NewProcessManager(searchService, &a.cfg.Kafka.Topics, a.log)
+	trackProcessManager := trackmanager.NewProcessManager(searchService, &a.cfg.Kafka.Topics, a.log)
 
 	go func() {
 		if err := a.runHTTPServer(searchHandlers); err != nil {
@@ -61,7 +62,9 @@ func (a *App) Run() error {
 		}
 	}()
 
-	go cg.ConsumeTopic(ctx, a.getTopicGroup(), poolSize, processManager.ProcessMessages)
+	//go cg.ConsumeTopic(ctx, a.getTopicGroup(), poolSize, profileProcessManager.ProcessMessages)
+
+	go cg.ConsumeTopic(ctx, a.getTopicGroup(), poolSize, trackProcessManager.ProcessMessages)
 
 	<-ctx.Done()
 
