@@ -12,14 +12,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import ws.schild.jave.Encoder;
-import ws.schild.jave.MultimediaObject;
-import ws.schild.jave.encode.AudioAttributes;
-import ws.schild.jave.encode.EncodingAttributes;
-
 
 import java.io.*;
-import java.util.UUID;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @Service
 @RequiredArgsConstructor
@@ -27,68 +23,67 @@ public class AudioServiceImpl implements AudioService {
     private final MinioProperties minioProperties;
     private final MinioClient minioClient;
 
-
     @Override
     public String upload(MultipartFile file, String trackId) {
         try {
-            createBucket();
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Image upload failed " + e.getMessage());
-        }
-        if (file.isEmpty() || file.getOriginalFilename() == null || (!file.getOriginalFilename().endsWith(".mp3") && !file.getOriginalFilename().endsWith(".mp4"))) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong file name or extension");
-        }
-        String fileName = trackId + ".mp4";
+            File source = File.createTempFile("source", ".mp3");
+            file.transferTo(source);
+            File dashDir = Files.createTempDirectory("dash_output").toFile();
 
-        if(file.getOriginalFilename().endsWith(".mp3")) {
-            File convertedFile = convertMp3ToAac(file);
-            try {
-                saveAudio(new FileInputStream(convertedFile), fileName);
-            } catch (FileNotFoundException e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "File invalid" + e.getMessage());
-            } finally {
-                convertedFile.delete();
+            String manifestPath = new File(dashDir, "manifest.mpd").getAbsolutePath();
+
+            ProcessBuilder pb = new ProcessBuilder(
+                    "ffmpeg",
+                    "-i", source.getAbsolutePath(),
+                    "-c:a", "aac",
+                    "-b:a", "128k",
+                    "-ac", "2",
+                    "-ar", "44100",
+                    "-seg_duration", "10",
+                    "-f", "dash",
+                    manifestPath
+            );
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                throw new RuntimeException("FFmpeg failed with code " + exitCode);
             }
-            return fileName;
-        }
 
-        InputStream inputStream;
-        try {
-            inputStream = file.getInputStream();
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File invalid " + e.getMessage());
-        }
-        saveAudio(inputStream, fileName);
+            uploadDashFiles(dashDir, trackId);
 
-        return fileName;
+            source.delete();
+            Files.walk(dashDir.toPath()).map(Path::toFile).forEach(File::delete);
+
+            return "success";
+        } catch (Exception e) {
+            throw new RuntimeException("DASH conversion and upload failed: " + e.getMessage());
+        }
     }
 
-    @SneakyThrows
-    private File convertMp3ToAac(MultipartFile file) {
-
-        File source = File.createTempFile("source", ".mp3");
-        file.transferTo(source);
-
-        File target = File.createTempFile("target", ".aac");
-        System.setProperty("jave.ffmpeg.location", "/usr/bin/ffmpeg");
-        System.setProperty("jave.disable.ffmpeg.extractor", "true");
+    public void uploadDashFiles(File dashDir, String trackId) {
         try {
-            AudioAttributes audio = new AudioAttributes();
-            audio.setCodec("aac");
-            audio.setBitRate(128000);
-            audio.setChannels(2);
-            audio.setSamplingRate(44100);
+            createBucket();
 
-            EncodingAttributes attrs = new EncodingAttributes();
-            attrs.setOutputFormat("mp4");
-            attrs.setAudioAttributes(audio);
-            Encoder encoder = new Encoder(() -> "/usr/bin/ffmpeg");
-            encoder.encode(new MultimediaObject(source), target, attrs);
-            return target;
+            File[] files = dashDir.listFiles();
+            if (files == null) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "DASH directory is empty or not found.");
+            }
+
+            for (File file : files) {
+                String objectName = trackId + "/" + file.getName();  // tracks/12345/manifest.mpd
+                try (InputStream inputStream = new FileInputStream(file)) {
+                    minioClient.putObject(
+                            PutObjectArgs.builder()
+                                    .bucket(minioProperties.getBucket())
+                                    .object(objectName)
+                                    .stream(inputStream, file.length(), -1)
+                                    .build()
+                    );
+                }
+            }
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error while converting mp3 to AAC " + e.getMessage());
-        } finally {
-            source.delete();
+            throw new RuntimeException("Error uploading DASH files to MinIO: " + e.getMessage(), e);
         }
     }
 
@@ -102,15 +97,5 @@ public class AudioServiceImpl implements AudioService {
                     .bucket(minioProperties.getBucket())
                     .build());
         }
-    }
-
-    @SneakyThrows
-    private void saveAudio(InputStream inputStream, String fileName) {
-        minioClient.putObject(PutObjectArgs.builder()
-                .stream(inputStream, inputStream.available(), -1)
-                .bucket(minioProperties.getBucket())
-                .object(fileName)
-                .build());
-        inputStream.close();
     }
 }

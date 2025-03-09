@@ -5,9 +5,9 @@ spring:
       max-request-size: 20MB
   application:
     name:
-      tracks-svc
+      player-service
   datasource:
-    url: jdbc:postgresql://tracks_postgres:5433/tracks_db?currentSchema=public
+    url: jdbc:postgresql://localhost:5436/player_db?currentSchema=public
     username: user
     password: pass
     driver-class-name: org.postgresql.Driver
@@ -15,19 +15,14 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
-  rabbitmq:
-    host: image_broker
-    password: guest
-    username: guest
-    port: 5672
-    virtual-host: /
-
 minio:
   bucket: audio
-  url: audio_minio:9002
+  url: http://localhost:9002
   accessKey: admin
   secretKey: adminadmin
 
 logging:
   level:
     web: trace
+server:
+  port: 4444

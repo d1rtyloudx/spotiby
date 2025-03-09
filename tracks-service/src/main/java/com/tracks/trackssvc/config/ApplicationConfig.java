@@ -2,11 +2,9 @@ package com.tracks.trackssvc.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tracks.trackssvc.service.props.MinioProperties;
-import com.tracks.trackssvc.web.dto.UpdateTrackCoverDto;
 import io.minio.MinioClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

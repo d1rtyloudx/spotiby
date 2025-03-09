@@ -16,11 +16,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import ws.schild.jave.EncoderException;
-import ws.schild.jave.MultimediaObject;
-import ws.schild.jave.info.MultimediaInfo;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -50,31 +50,65 @@ public class TrackServiceImpl implements TrackService {
     @NotNull
     private static Track constructTrack(TrackUploadDto trackUploadDto) {
         Track trackToAdd = new Track();
-        if(trackUploadDto.getAudioFile() == null) {
+
+        if (trackUploadDto.getAudioFile() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is required");
         }
+
         File audioFile;
         try {
-            audioFile = File.createTempFile(
-                    trackUploadDto.getAudioFile().getOriginalFilename().split("\\.")[0],
-                    "." + trackUploadDto.getAudioFile().getOriginalFilename().split("\\.")[1]
-            );
+            String originalFilename = trackUploadDto.getAudioFile().getOriginalFilename();
+            String baseName = originalFilename.contains(".")
+                    ? originalFilename.substring(0, originalFilename.lastIndexOf('.'))
+                    : originalFilename;
+            String extension = originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf('.') + 1)
+                    : "";
+            audioFile = File.createTempFile(baseName, "." + extension);
             Files.copy(trackUploadDto.getAudioFile().getInputStream(), audioFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not create temp file " +  e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not create temp file " + e.getMessage());
         }
-        MultimediaObject multimediaObject = new MultimediaObject(audioFile);
+
         try {
-            MultimediaInfo multimediaInfo = multimediaObject.getInfo();
-            trackToAdd.setDurationMs(multimediaInfo.getDuration());
-        } catch (EncoderException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not obtain audio info", e);
+            long durationMs = getDurationMs(audioFile);
+            trackToAdd.setDurationMs(durationMs);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not obtain audio info: " + e.getMessage(), e);
+        } finally {
+            if (audioFile.exists()) {
+                audioFile.delete();
+            }
         }
-        audioFile.delete();
+
         trackToAdd.setAuthorId(trackUploadDto.getAuthorId());
         trackToAdd.setTitle(trackUploadDto.getTitle());
         trackToAdd.setUploadDate(new Date());
+
         return trackToAdd;
+    }
+
+    private static long getDurationMs(File audioFile) throws IOException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder(
+                "ffprobe",
+                "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                audioFile.getAbsolutePath()
+        );
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String durationStr = reader.readLine();
+
+        int exitCode = process.waitFor();
+        if (exitCode != 0 || durationStr == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ffprobe returned non-zero exit code or empty duration");
+        }
+
+        double durationSec = Double.parseDouble(durationStr);
+        return (long) (durationSec * 1000);
     }
 
     @Transactional
@@ -82,7 +116,7 @@ public class TrackServiceImpl implements TrackService {
     public void listenImageQueue(Message message) {
         String body = new String(message.getBody(), StandardCharsets.UTF_8);
         System.out.println(body);
-        UpdateTrackCoverDto dto = null;
+        UpdateTrackCoverDto dto;
         try {
             dto = objectMapper.readValue(body, UpdateTrackCoverDto.class);
         } catch (JsonProcessingException e) {

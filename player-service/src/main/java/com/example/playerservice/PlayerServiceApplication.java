@@ -1,13 +1,13 @@
-package com.tracks.trackssvc;
+package com.example.playerservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class TracksSvcApplication {
+public class PlayerServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(TracksSvcApplication.class, args);
+        SpringApplication.run(PlayerServiceApplication.class, args);
     }
 
 }
