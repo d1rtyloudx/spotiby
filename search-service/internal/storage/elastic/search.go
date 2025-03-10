@@ -11,7 +11,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 )
 
-var searchFields = []string{"description", "display_name", "name"}
+var searchFields = []string{"description", "display_name", "name", "title"}
 
 type SearchStorage struct {
 	client  *elasticsearch.Client
@@ -106,8 +106,9 @@ func (s *SearchStorage) Search(ctx context.Context, term string, paginationQuery
 	searchQuery := map[string]interface{}{
 		"query": map[string]interface{}{
 			"multi_match": map[string]interface{}{
-				"query":  term,
-				"fields": searchFields,
+				"query":     term,
+				"fields":    searchFields,
+				"fuzziness": "AUTO",
 			},
 		},
 	}
@@ -119,7 +120,11 @@ func (s *SearchStorage) Search(ctx context.Context, term string, paginationQuery
 
 	resp, err := s.client.Search(
 		s.client.Search.WithContext(ctx),
-		s.client.Search.WithIndex(s.indexes.ProfileIndex.Name),
+		s.client.Search.WithIndex(
+			s.indexes.ProfileIndex.Name,
+			s.indexes.TrackIndex.Name,
+			s.indexes.PlaylistIndex.Name,
+		),
 		s.client.Search.WithBody(bytes.NewReader(searchQueryBytes)),
 		s.client.Search.WithPretty(),
 		s.client.Search.WithHuman(),

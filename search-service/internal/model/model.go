@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/d1rtyloudx/spotiby-pkg/lib"
-	"time"
 )
 
 type SearchResponse struct {
@@ -27,7 +26,10 @@ type DeleteProfile struct {
 }
 
 type Playlist struct {
-	ID string `json:"id"`
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	CoverURL  string `json:"cover_url"`
+	CreatedAt int64  `json:"created_at"`
 }
 
 type DeletePlaylist struct {
@@ -35,12 +37,12 @@ type DeletePlaylist struct {
 }
 
 type Track struct {
-	ID         string    `json:"id"`
-	Title      string    `json:"title"`
-	AuthorID   string    `json:"author_id"`
-	CoverURL   string    `json:"cover_url"`
-	DurationMs int       `json:"duration_ms"`
-	UploadDate time.Time `json:"upload_date"`
+	ID         string `json:"id"`
+	Title      string `json:"title"`
+	AuthorID   string `json:"author_id"`
+	CoverURL   string `json:"cover_url"`
+	DurationMs int    `json:"duration_ms"`
+	UploadDate int64  `json:"upload_date"`
 }
 
 type DeleteTrack struct {

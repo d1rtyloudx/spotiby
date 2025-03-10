@@ -18,7 +18,7 @@ public class PlaylistDto {
     private String authorId;
     @JsonProperty("cover_url")
     private String coverUrl;
-    @JsonProperty("creation_date")
+    @JsonProperty("created_at")
     private Date createdAt;
     private Set<TrackDto> tracks;
 }

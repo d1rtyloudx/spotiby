@@ -42,7 +42,7 @@ func (m *ProcessManager) ProcessMessages(ctx context.Context, r *kafka.Reader, w
 		msg, err := r.FetchMessage(ctx)
 		if err != nil {
 			m.log.Warn("failed to fetch message",
-				zap.String("op", "manager.track.ProcessMessages"),
+				zap.String("op", "manager.track.ProcessMessages - r.FetchMessage"),
 				zap.Int("worker_id", workerID),
 				zap.Error(err),
 			)
@@ -63,31 +63,37 @@ func (m *ProcessManager) ProcessMessages(ctx context.Context, r *kafka.Reader, w
 func (m *ProcessManager) processIndexTrack(ctx context.Context, r *kafka.Reader, msg kafka.Message) {
 	var track model.Track
 	if err := json.Unmarshal(msg.Value, &track); err != nil {
-		m.log.Warn("failed to unmarshal track", zap.Error(err))
+		m.log.Warn("failed to unmarshal track msg", zap.Error(err))
+		return
 	}
 
 	err := m.indexer.IndexTrack(ctx, track)
 	if err != nil {
-		m.log.Warn("failed to index track", zap.Error(err))
+		return
 	}
 
 	if err := r.CommitMessages(ctx, msg); err != nil {
-		m.log.Warn("failed to commit messages", zap.Error(err))
+		m.log.Warn("failed to commit msgs", zap.Error(err))
 	}
+
+	m.log.Info("successfully process msg", zap.Any("data", track))
 }
 
 func (m *ProcessManager) processDeleteTrack(ctx context.Context, r *kafka.Reader, msg kafka.Message) {
 	var req model.DeleteTrack
 	if err := json.Unmarshal(msg.Value, &req); err != nil {
-		m.log.Warn("failed to unmarshal track", zap.Error(err))
+		m.log.Warn("failed to unmarshal track msg", zap.Error(err))
+		return
 	}
 
 	err := m.indexer.DeleteTrack(ctx, req)
 	if err != nil {
-		m.log.Warn("failed to index track", zap.Error(err))
+		return
 	}
 
 	if err := r.CommitMessages(ctx, msg); err != nil {
-		m.log.Warn("failed to commit messages", zap.Error(err))
+		m.log.Warn("failed to commit msgs", zap.Error(err))
 	}
+
+	m.log.Info("successfully process msg", zap.Any("data", req))
 }

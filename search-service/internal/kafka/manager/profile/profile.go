@@ -41,7 +41,8 @@ func (m *ProcessManager) ProcessMessages(ctx context.Context, r *kafka.Reader, w
 
 		msg, err := r.FetchMessage(ctx)
 		if err != nil {
-			m.log.Warn("error reading message",
+			m.log.Warn("error fetching message",
+				zap.String("op", "manager.Profile.ProcessMessages - r.FetchMessage"),
 				zap.Int("worker_id", workerID),
 				zap.Error(err),
 			)
@@ -60,13 +61,13 @@ func (m *ProcessManager) ProcessMessages(ctx context.Context, r *kafka.Reader, w
 }
 
 func (m *ProcessManager) processIndexProfile(ctx context.Context, r *kafka.Reader, msg kafka.Message) {
-	var profileMsg model.Profile
-	if err := json.Unmarshal(msg.Value, &profileMsg); err != nil {
+	var profile model.Profile
+	if err := json.Unmarshal(msg.Value, &profile); err != nil {
 		m.log.Warn("failed to unmarshal profile message", zap.Error(err))
 		return
 	}
 
-	err := m.indexer.IndexProfile(ctx, profileMsg)
+	err := m.indexer.IndexProfile(ctx, profile)
 	if err != nil {
 		return
 	}
@@ -74,21 +75,25 @@ func (m *ProcessManager) processIndexProfile(ctx context.Context, r *kafka.Reade
 	if err := r.CommitMessages(ctx, msg); err != nil {
 		m.log.Warn("failed to commit messages", zap.Error(err))
 	}
+
+	m.log.Info("successfully process msg", zap.Any("data", profile))
 }
 
 func (m *ProcessManager) processDeleteProfile(ctx context.Context, r *kafka.Reader, msg kafka.Message) {
-	var profileMsg model.DeleteProfile
-	if err := json.Unmarshal(msg.Value, &profileMsg); err != nil {
-		m.log.Warn("failed to unmarshal profile message", zap.Error(err))
+	var req model.DeleteProfile
+	if err := json.Unmarshal(msg.Value, &req); err != nil {
+		m.log.Warn("failed to unmarshal profile msg", zap.Error(err))
 		return
 	}
 
-	err := m.indexer.DeleteProfile(ctx, profileMsg)
+	err := m.indexer.DeleteProfile(ctx, req)
 	if err != nil {
 		return
 	}
 
 	if err := r.CommitMessages(ctx, msg); err != nil {
-		m.log.Warn("failed to commit messages", zap.Error(err))
+		m.log.Warn("failed to commit msgs", zap.Error(err))
 	}
+
+	m.log.Info("successfully process msg", zap.Any("data", req))
 }

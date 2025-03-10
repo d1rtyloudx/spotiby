@@ -6,6 +6,8 @@ import (
 	kafkapkg "github.com/d1rtyloudx/spotiby-pkg/kafka"
 	"github.com/d1rtyloudx/spotiby/search-service/internal/config"
 	searchhand "github.com/d1rtyloudx/spotiby/search-service/internal/http/search"
+	playlistmanager "github.com/d1rtyloudx/spotiby/search-service/internal/kafka/manager/playlist"
+	profilemanager "github.com/d1rtyloudx/spotiby/search-service/internal/kafka/manager/profile"
 	trackmanager "github.com/d1rtyloudx/spotiby/search-service/internal/kafka/manager/track"
 	searchsvc "github.com/d1rtyloudx/spotiby/search-service/internal/service/search"
 	elasticstorage "github.com/d1rtyloudx/spotiby/search-service/internal/storage/elastic"
@@ -50,10 +52,14 @@ func (a *App) Run() error {
 	}
 	defer a.kafkaConn.Close() //wrap
 
-	cg := kafkapkg.NewConsumerGroup(a.cfg.Kafka.Connection.Brokers, a.cfg.Kafka.Connection.GroupID, a.log)
+	//TODO add GROUP ids to cfg
+	profileCg := kafkapkg.NewConsumerGroup(a.cfg.Kafka.Connection.Brokers, "profile_consumer_group", a.log)
+	trackCg := kafkapkg.NewConsumerGroup(a.cfg.Kafka.Connection.Brokers, "track_consumer_group", a.log)
+	playlistCg := kafkapkg.NewConsumerGroup(a.cfg.Kafka.Connection.Brokers, "playlist_consumer_group", a.log)
 
-	//profileProcessManager := profilemanager.NewProcessManager(searchService, &a.cfg.Kafka.Topics, a.log)
+	profileProcessManager := profilemanager.NewProcessManager(searchService, &a.cfg.Kafka.Topics, a.log)
 	trackProcessManager := trackmanager.NewProcessManager(searchService, &a.cfg.Kafka.Topics, a.log)
+	playlistProcessManager := playlistmanager.NewProcessManager(searchService, &a.cfg.Kafka.Topics, a.log)
 
 	go func() {
 		if err := a.runHTTPServer(searchHandlers); err != nil {
@@ -62,9 +68,11 @@ func (a *App) Run() error {
 		}
 	}()
 
-	//go cg.ConsumeTopic(ctx, a.getTopicGroup(), poolSize, profileProcessManager.ProcessMessages)
+	go profileCg.ConsumeTopic(ctx, a.getTopicGroup(), poolSize, profileProcessManager.ProcessMessages)
 
-	go cg.ConsumeTopic(ctx, a.getTopicGroup(), poolSize, trackProcessManager.ProcessMessages)
+	go trackCg.ConsumeTopic(ctx, a.getTopicGroup(), poolSize, trackProcessManager.ProcessMessages)
+
+	go playlistCg.ConsumeTopic(ctx, a.getTopicGroup(), poolSize, playlistProcessManager.ProcessMessages)
 
 	<-ctx.Done()
 

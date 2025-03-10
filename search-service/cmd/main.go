@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/d1rtyloudx/spotiby-pkg/logger"
 	"github.com/d1rtyloudx/spotiby/search-service/internal/app"
 	"github.com/d1rtyloudx/spotiby/search-service/internal/config"
@@ -14,8 +13,6 @@ func main() {
 	}
 
 	cfg := config.MustLoad()
-
-	fmt.Println(cfg)
 
 	log := logger.New()
 

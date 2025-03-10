@@ -194,9 +194,14 @@ services:
     ports:
       - "8083:8080"
     depends_on:
-      - track_db
-      - minio1
-      - image_service
+      track_db:
+        condition: service_started
+      minio1:
+        condition: service_started
+      image_service:
+        condition: service_started
+      search_service:
+        condition: service_started
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://tracks_postgres:5432/tracks_db"
       JAVA_OPTS: "-Xmx512m"
@@ -209,6 +214,8 @@ services:
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
     networks:
       audio:
+      bus:
+      search:
 
   minio:
     image: minio/minio
