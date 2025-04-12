@@ -19,7 +19,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5174")
+@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("api/v1/stream")
 @RequiredArgsConstructor
 public class StreamController {
@@ -34,7 +34,7 @@ public class StreamController {
                     .object(trackId+"/"+fileName).build());
             return new InputStreamResource(fileStream);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unnable to extract object from minio");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Unnable to extract object from minio");
         }
     }
 }

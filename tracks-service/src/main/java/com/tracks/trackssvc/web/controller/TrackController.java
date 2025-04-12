@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("api/v1/track")
+@CrossOrigin(origins = "http://localhost:5173")
 public class TrackController {
     private final TrackService trackService;
     private final TrackMapper trackMapper;

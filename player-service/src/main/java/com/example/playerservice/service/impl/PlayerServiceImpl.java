@@ -19,6 +19,9 @@ public class PlayerServiceImpl implements PlayerService {
 
     @Override
     public Player createPlayer(String userId) {
+        if(playerRepository.existsById(userId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Player already exists");
+        }
         Player player = new Player();
         player.setId(userId);
         player.setVolume(0);

@@ -25,4 +25,4 @@ logging:
   level:
     web: trace
 server:
-  port: 4444
+  port: 8080

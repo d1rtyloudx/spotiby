@@ -168,9 +168,24 @@ services:
     volumes:
       - trackdb-data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"
+      - "5434:5432"
     networks:
       audio:
+
+  player_db:
+    image: postgres:13.3
+    container_name: player_postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=player_db
+    volumes:
+      - playerdb-data:/var/lib/postgresql/data
+    ports:
+      - "5436:5432"
+    networks:
+      player:
 
   search_service:
     build: ./search-service
@@ -205,7 +220,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://tracks_postgres:5432/tracks_db"
       JAVA_OPTS: "-Xmx512m"
-      MINIO_BUCKED: "audio"
+      MINIO_BUCKET: "audio"
       MINIO_URL: "http://minio1:9000"
       MINIO_ACCESS_KEY: "admin"
       MINIO_SECRET_KEY: "adminadmin"
@@ -216,6 +231,31 @@ services:
       audio:
       bus:
       search:
+
+  player_service:
+    build: ./player-service
+    image: player_backend:latest
+    container_name: player_backend
+    restart: unless-stopped
+    ports:
+      - "8085:8080"
+    depends_on:
+      player_db:
+        condition: service_started
+      minio1:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://player_postgres:5432/player_db"
+      JAVA_OPTS: "-Xmx512m"
+      MINIO_BUCKET: "audio"
+      MINIO_URL: "http://minio1:9000"
+      MINIO_ACCESS_KEY: "admin"
+      MINIO_SECRET_KEY: "adminadmin"
+      LOGGING_LEVEL_WEB: "trace"
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+    networks:
+      player:
 
   minio:
     image: minio/minio
@@ -259,6 +299,7 @@ services:
       - audio-minio-data:/data
     networks:
       audio:
+      player:
 
   zoo:
     image: confluentinc/cp-zookeeper:7.0.1
@@ -350,6 +391,7 @@ services:
 volumes:
   userdb-data:
   trackdb-data:
+  playerdb-data:
   image-minio-data:
   audio-minio-data:
   authcache-data:
@@ -366,4 +408,6 @@ networks:
   search:
     driver: bridge
   bus:
+    driver: bridge
+  player:
     driver: bridge
