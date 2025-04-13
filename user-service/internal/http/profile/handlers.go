@@ -91,7 +91,9 @@ func (h *Handlers) GetByID() echo.HandlerFunc {
 			})
 		}
 
-		return ctx.JSON(http.StatusOK, resp)
+		return ctx.JSON(http.StatusOK, echo.Map{
+			"profile": resp,
+		})
 	}
 }
 

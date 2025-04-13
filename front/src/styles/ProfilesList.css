@@ -1,0 +1,215 @@
+.profiles-list-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: #121212;
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Хедер */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: linear-gradient(to bottom, #282828 0%, #121212 20%);
+}
+
+.header h1 {
+    font-size: 1.8rem;
+    margin: 0;
+    color: #fff;
+}
+
+/* Основной контент */
+.main-content {
+    flex-grow: 1;
+    padding: 1rem;
+    padding-bottom: 80px; /* Отступ для футера */
+}
+
+/* Список профилей */
+.profiles-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.profile-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #181818;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    position: relative;
+}
+
+.profile-item:hover {
+    background: #282828;
+}
+
+.profile-avatar {
+    margin-right: 1.5rem;
+}
+
+.avatar-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #fff;
+}
+
+.profile-info {
+    flex-grow: 1;
+}
+
+.profile-info h2 {
+    font-size: 1.4rem;
+    margin: 0;
+    color: #fff;
+}
+
+.profile-info p {
+    font-size: 0.9rem;
+    color: #b3b3b3;
+    margin: 0.3rem 0;
+}
+
+.profile-info .description {
+    font-size: 0.85rem;
+    color: #b3b3b3;
+}
+
+.follow-button {
+    padding: 0.2rem 0.4rem;
+    border: none;
+    border-radius: 20px;
+    background: #1db954;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.7rem;
+    width: 90px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.follow-button:hover {
+    background: #1ed760;
+}
+
+.follow-button.unfollow {
+    background: #ff4d4d;
+}
+
+.follow-button.unfollow:hover {
+    background: #e60000;
+}
+
+/* Футер с пагинацией */
+.pagination-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #181818;
+    padding: 1rem;
+    border-top: 1px solid #282828;
+    z-index: 1000;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.pagination-button {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 20px;
+    background: #1db954;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.pagination-button:disabled {
+    background: #333;
+    cursor: not-allowed;
+}
+
+.pagination-button:hover:not(:disabled) {
+    background: #1ed760;
+}
+
+.pagination-info {
+    font-size: 0.9rem;
+    color: #b3b3b3;
+    background: #282828;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+}
+
+/* Спиннер загрузки */
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 5rem;
+    color: #fff;
+}
+
+.spinner {
+    border: 4px solid #333;
+    border-top: 4px solid #1db954;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Ошибка и пустой список */
+.error {
+    color: #ff4d4d;
+    font-size: 1rem;
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.no-profiles {
+    color: #b3b3b3;
+    font-size: 1rem;
+    text-align: center;
+    margin-top: 2rem;
+}
