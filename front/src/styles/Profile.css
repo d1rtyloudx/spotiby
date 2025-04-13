@@ -1,0 +1,351 @@
+.profile-page {
+    display: flex;
+    min-height: 100vh;
+    background: #121212;
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Боковая панель */
+.sidebar {
+    width: 240px;
+    background: #000;
+    padding: 1rem;
+    flex-shrink: 0;
+}
+
+.sidebar-header h2 {
+    font-size: 1.2rem;
+    margin: 0 0 1rem;
+    color: #fff;
+}
+
+.playlist-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.playlist-list li {
+    padding: 0.5rem 0;
+    color: #b3b3b3;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.playlist-list li:hover {
+    color: #fff;
+}
+
+.create-playlist {
+    color: #1db954;
+    font-weight: bold;
+}
+
+.create-playlist:hover {
+    color: #1ed760;
+}
+
+/* Основной контент */
+.main-content {
+    flex-grow: 1;
+    padding: 1rem;
+    background: linear-gradient(to bottom, #282828 0%, #121212 20%);
+}
+
+/* Хедер */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.search-bar {
+    display: flex;
+    gap: 0.5rem;
+    flex-grow: 1;
+    width: calc(100% - 120px);
+    max-width: none;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 20px;
+    background: #333;
+    color: #fff;
+    font-size: 0.85rem;
+}
+
+.search-input::placeholder {
+    color: #b3b3b3;
+}
+
+.search-button {
+    padding: 0.2rem 0.4rem;
+    border: none;
+    border-radius: 20px;
+    background: #1db954;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.7rem;
+    width: 70px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.search-button:hover {
+    background: #1ed760;
+}
+
+.logout-button {
+    padding: 0.2rem 0.4rem;
+    border: none;
+    border-radius: 20px;
+    background: #ff4d4d;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.7rem;
+    width: 70px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.logout-button:hover {
+    background: #e60000;
+}
+
+/* Профиль */
+.profile-section {
+    margin-bottom: 2rem;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem;
+    background: #282828;
+    border-radius: 8px;
+}
+
+.avatar-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-avatar-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #fff;
+}
+
+.avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.avatar-wrapper:hover .avatar-overlay {
+    opacity: 1;
+}
+
+.avatar-input {
+    display: none;
+}
+
+.avatar-label {
+    color: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: center;
+    padding: 0.5rem;
+}
+
+.profile-info h1 {
+    font-size: 2rem;
+    margin: 0;
+    color: #fff;
+}
+
+.profile-info p {
+    font-size: 1rem;
+    color: #b3b3b3;
+    margin: 0.5rem 0;
+}
+
+.edit-button {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 20px;
+    background: #1db954;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+    margin-top: 1rem;
+}
+
+.edit-button:hover {
+    background: #1ed760;
+}
+
+/* Панели */
+.content-panels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.panel {
+    background: #181818;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.panel h3 {
+    font-size: 1.1rem;
+    margin: 0 0 1rem;
+    color: #fff;
+}
+
+.panel-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.panel-list li {
+    padding: 0.5rem 0;
+    color: #b3b3b3;
+    font-size: 0.9rem;
+}
+
+.panel-list li:hover {
+    color: #fff;
+}
+
+/* Модал */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #282828;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.modal-content h2 {
+    color: #fff;
+    margin: 0 0 1.5rem;
+    text-align: center;
+}
+
+.modal .form-group {
+    margin-bottom: 1rem;
+}
+
+.modal .form-group label {
+    display: block;
+    color: #b3b3b3;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.modal .form-group input {
+    width: 100%;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 4px;
+    background: #333;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.modal .form-group input::placeholder {
+    color: #b3b3b3;
+}
+
+.modal .error {
+    color: #ff4d4d;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.save-button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 20px;
+    background: #1db954;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.save-button:hover {
+    background: #1ed760;
+}
+
+.cancel-button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 20px;
+    background: #ff4d4d;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.cancel-button:hover {
+    background: #e60000;
+}

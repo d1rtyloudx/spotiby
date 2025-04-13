@@ -1,17 +1,17 @@
-import React from "react";
-import TrackList from "./components/TrackList";
-import Player from "./components/Player";
-import { PlayerProvider } from "./context/PlayerContext";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import AuthContainer from './components/Auth/AuthContainer';
+import Profile from './components/Profile';
 
-const App = () => {
+function App() {
     return (
-        <PlayerProvider>
-            <div className="pb-28">
-                <TrackList />
-            </div>
-            <Player />
-        </PlayerProvider>
+        <Router>
+            <Routes>
+                <Route path="/auth" element={<AuthContainer />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/" element={<AuthContainer />} />
+            </Routes>
+        </Router>
     );
-};
+}
 
 export default App;
