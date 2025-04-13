@@ -14,7 +14,7 @@ import (
 type profileService interface {
 	Get(ctx context.Context, pageQuery lib.PaginationQuery) (dto.PagedProfileResponse, error)
 	GetByID(ctx context.Context, id string) (dto.Profile, error)
-	Update(ctx context.Context, id string, req dto.UpdateProfileRequest) error
+	Update(ctx context.Context, id string, req dto.UpdateProfileRequest) (dto.Profile, error)
 	GetFollows(ctx context.Context, followerID string, pageQuery lib.PaginationQuery) (dto.PagedProfileResponse, error)
 	FollowProfile(ctx context.Context, followerID string, followeeID string) error
 	UnfollowProfile(ctx context.Context, followerID string, followeeID string) error
@@ -63,7 +63,9 @@ func (h *Handlers) GetMe() echo.HandlerFunc {
 			})
 		}
 
-		return ctx.JSON(http.StatusOK, resp)
+		return ctx.JSON(http.StatusOK, echo.Map{
+			"profile": resp,
+		})
 	}
 }
 
@@ -102,14 +104,16 @@ func (h *Handlers) Update() echo.HandlerFunc {
 			return ctx.NoContent(http.StatusBadRequest)
 		}
 
-		err := h.profileService.Update(ctx.Request().Context(), profileID, req)
+		resp, err := h.profileService.Update(ctx.Request().Context(), profileID, req)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, echo.Map{
 				"error": "failed to update profile",
 			})
 		}
 
-		return ctx.NoContent(http.StatusOK)
+		return ctx.JSON(http.StatusOK, echo.Map{
+			"profile": resp,
+		})
 	}
 }
 

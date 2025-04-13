@@ -82,7 +82,7 @@ func (s *Service) GetByID(ctx context.Context, id string) (dto.Profile, error) {
 	return converter.ProfileToProfileDTO(profile), nil
 }
 
-func (s *Service) Update(ctx context.Context, id string, req dto.UpdateProfileRequest) error {
+func (s *Service) Update(ctx context.Context, id string, req dto.UpdateProfileRequest) (dto.Profile, error) {
 	childLog := s.log.With(
 		zap.String("op", "profile.Service.Update"),
 		zap.String("id", id),
@@ -99,13 +99,13 @@ func (s *Service) Update(ctx context.Context, id string, req dto.UpdateProfileRe
 	})
 	if err != nil {
 		childLog.Error("failed to update profile", zap.Error(err))
-		return err
+		return dto.Profile{}, err
 	}
 
 	profileBytes, err := json.Marshal(converter.ProfileToProfileDTO(profile))
 	if err != nil {
 		childLog.Error("failed to marshal profile", zap.Error(err))
-		return err
+		return dto.Profile{}, err
 	}
 
 	err = s.producer.PublishMessage(ctx, kafka.Message{
@@ -119,7 +119,7 @@ func (s *Service) Update(ctx context.Context, id string, req dto.UpdateProfileRe
 
 	childLog.Info("successfully update profile")
 
-	return nil
+	return converter.ProfileToProfileDTO(profile), nil
 }
 
 func (s *Service) GetFollows(ctx context.Context, profileID string, pageQuery lib.PaginationQuery) (dto.PagedProfileResponse, error) {

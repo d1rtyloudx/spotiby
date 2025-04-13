@@ -153,6 +153,7 @@ func (s *Service) Login(ctx context.Context, req dto.LoginRequest) (dto.LoginRes
 	return dto.LoginResponse{
 		Profile: dto.Profile{
 			ID:           profile.ID,
+			DisplayName:  profile.DisplayName,
 			FirstName:    profile.FirstName,
 			LastName:     profile.LastName,
 			Description:  profile.Description,

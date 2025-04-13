@@ -12,7 +12,7 @@ import (
 )
 
 type profileUpdater interface {
-	Update(ctx context.Context, id string, req dto.UpdateProfileRequest) error
+	Update(ctx context.Context, id string, req dto.UpdateProfileRequest) (dto.Profile, error)
 }
 
 type Consumer struct {
@@ -94,7 +94,7 @@ func (c *Consumer) UploadProfileAvatar(ctx context.Context, deliveries <-chan am
 					zap.Any("message", req),
 				)
 
-				err = c.updater.Update(ctx, req.ID, dto.UpdateProfileRequest{
+				_, err = c.updater.Update(ctx, req.ID, dto.UpdateProfileRequest{
 					AvatarURL: req.AvatarURL,
 				})
 				if err != nil {
