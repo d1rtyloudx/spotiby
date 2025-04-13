@@ -20,6 +20,18 @@ func NewImageStorage(client *minio.Client, endpoint string) *ImageStorage {
 	}
 }
 
+func (s *ImageStorage) Get(ctx context.Context, bucketName string, fileName string) (*minio.Object, error) {
+	const op = "minio.ImageStorage.Get"
+
+	obj, err := s.client.GetObject(ctx, bucketName, fileName, minio.GetObjectOptions{})
+	if err != nil {
+		fmt.Printf("GetObject error: %v\n", err)
+		return nil, fmt.Errorf("s.client.GetObject - %s: %w", op, err)
+	}
+
+	return obj, nil
+}
+
 func (s *ImageStorage) Upload(ctx context.Context, image model.Image) (string, error) {
 	const op = "minio.ImageStorage.Upload"
 
@@ -30,10 +42,12 @@ func (s *ImageStorage) Upload(ctx context.Context, image model.Image) (string, e
 		},
 	}
 
-	info, err := s.client.PutObject(
+	fileName := s.generateFilename(image.Name)
+
+	_, err := s.client.PutObject(
 		ctx,
 		image.BucketName,
-		s.generateFilename(image.Name),
+		fileName,
 		image.File,
 		image.Size,
 		opts,
@@ -42,13 +56,7 @@ func (s *ImageStorage) Upload(ctx context.Context, image model.Image) (string, e
 		return "", fmt.Errorf("%s - s.client.PutObject: %w", op, err)
 	}
 
-	urlString := s.generateURLStr(info.Bucket, info.Key)
-
-	return urlString, nil
-}
-
-func (s *ImageStorage) generateURLStr(bucket string, key string) string {
-	return fmt.Sprintf("%s/%s/%s", "localhost:9000", bucket, key)
+	return fileName, nil
 }
 
 func (s *ImageStorage) generateFilename(filename string) string {

@@ -48,8 +48,8 @@ func (a *App) Run() error {
 	publisher := rabbitmq.MustCreatePublisher(&a.cfg.RabbitMQ.Connection)
 	defer publisher.Close()
 
-	imageService := imagesvc.New(imageStorage, publisher, a.log, &a.cfg.RabbitMQ)
-	imageHandlers := imagehand.New(imageService, &a.cfg.Minio.Buckets, a.log)
+	imageService := imagesvc.New(imageStorage, imageStorage, publisher, a.log, &a.cfg.RabbitMQ)
+	imageHandlers := imagehand.New(imageService, imageService, &a.cfg.Minio.Buckets, a.log)
 
 	go func() {
 		err := a.runHTTPServer(imageHandlers)
