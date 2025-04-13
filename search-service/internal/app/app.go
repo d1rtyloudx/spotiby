@@ -53,9 +53,9 @@ func (a *App) Run() error {
 	defer a.kafkaConn.Close() //wrap
 
 	//TODO add GROUP ids to cfg
-	profileCg := kafkapkg.NewConsumerGroup(a.cfg.Kafka.Connection.Brokers, "profile_consumer_group", a.log)
-	trackCg := kafkapkg.NewConsumerGroup(a.cfg.Kafka.Connection.Brokers, "track_consumer_group", a.log)
-	playlistCg := kafkapkg.NewConsumerGroup(a.cfg.Kafka.Connection.Brokers, "playlist_consumer_group", a.log)
+	profileCg := kafkapkg.NewConsumerGroup(a.cfg.Kafka.Connection.Brokers, a.cfg.Kafka.Connection.ConsumerGroups.ProfileName, a.log)
+	trackCg := kafkapkg.NewConsumerGroup(a.cfg.Kafka.Connection.Brokers, a.cfg.Kafka.Connection.ConsumerGroups.TrackName, a.log)
+	playlistCg := kafkapkg.NewConsumerGroup(a.cfg.Kafka.Connection.Brokers, a.cfg.Kafka.Connection.ConsumerGroups.PlaylistName, a.log)
 
 	profileProcessManager := profilemanager.NewProcessManager(searchService, &a.cfg.Kafka.Topics, a.log)
 	trackProcessManager := trackmanager.NewProcessManager(searchService, &a.cfg.Kafka.Topics, a.log)

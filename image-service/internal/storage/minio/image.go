@@ -48,7 +48,7 @@ func (s *ImageStorage) Upload(ctx context.Context, image model.Image) (string, e
 }
 
 func (s *ImageStorage) generateURLStr(bucket string, key string) string {
-	return fmt.Sprintf("%s/%s/%s", s.endpoint, bucket, key)
+	return fmt.Sprintf("%s/%s/%s", "localhost:9000", bucket, key)
 }
 
 func (s *ImageStorage) generateFilename(filename string) string {

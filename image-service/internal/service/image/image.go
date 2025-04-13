@@ -9,6 +9,7 @@ import (
 	"github.com/d1rtyloudx/spotiby/user-service/internal/dto"
 	"github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 )
 
@@ -47,9 +48,11 @@ func (s *Service) upload(ctx context.Context, id string, image model.Image, exch
 		return err
 	}
 
+	updatedURL := strings.Replace(urlStr, "http://minio:9000", "http://localhost:9000", 1)
+
 	req := dto.UpdateAvatarProfileMessage{
 		ID:        id,
-		AvatarURL: urlStr,
+		AvatarURL: updatedURL,
 	}
 
 	reqBytes, err := json.Marshal(req)

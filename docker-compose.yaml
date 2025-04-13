@@ -284,6 +284,26 @@ services:
     networks:
       image:
 
+  minio-cors:
+    image: minio/mc
+    container_name: minio_cors
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set myminio http://minio:9000 ${MINIO_USER} ${MINIO_PASSWORD}; do
+        echo 'Ожидание готовности MinIO...';
+        sleep 2;
+      done;
+      echo 'Создание JSON-файла политики CORS...';
+      echo '{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"*\"]},\"Action\":[\"s3:GetObject\",\"s3:PutObject\",\"s3:DeleteObject\",\"s3:ListBucket\"],\"Resource\":[\"arn:aws:s3:::audio/*\",\"arn:aws:s3:::audio\"],\"Condition\":{\"StringLike\":{\"aws:Referer\":[\"http://localhost:5174/*\"]}}}]}' > /tmp/cors-policy.json;
+      mc anonymous set-json /tmp/cors-policy.json myminio/audio;
+      echo 'Настройка CORS успешно применена';
+      "
+    networks:
+      image:
+
   minio1:
     image: minio/minio:latest
     container_name: minio1

@@ -23,7 +23,10 @@ elastic:
 kafka:
   connection:
     brokers: [ "kafka:29092" ]
-    group_id: consumer_group
+    consumer_groups:
+      profile_name: "profile_consumer_group"
+      track_name: "track_consumer_group"
+      playlist_name: "playlist_consumer_group"
   topics:
     create_profile_topic:
       topic_name: profile_create

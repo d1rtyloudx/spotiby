@@ -33,9 +33,20 @@ type HTTPConfig struct {
 	ShutdownTimeout time.Duration `yaml:"shutdown_timeout"`
 }
 
+type KafkaConnection struct {
+	Brokers        []string            `yaml:"brokers"`
+	ConsumerGroups KafkaConsumerGroups `yaml:"consumer_groups"`
+}
+
+type KafkaConsumerGroups struct {
+	ProfileName  string `yaml:"profile_consumer_group"`
+	TrackName    string `yaml:"track_consumer_group"`
+	PlaylistName string `yaml:"playlist_consumer_group"`
+}
+
 type KafkaConfig struct {
-	Connection kafka.Config `yaml:"connection"`
-	Topics     KafkaTopics  `yaml:"topics"`
+	Connection KafkaConnection `yaml:"connection"`
+	Topics     KafkaTopics     `yaml:"topics"`
 }
 
 type KafkaTopics struct {
