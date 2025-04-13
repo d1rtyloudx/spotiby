@@ -4,11 +4,20 @@ import axios from 'axios';
 import API_BASE_URL from '../config/api';
 import '../styles/Profile.css';
 
+// Компонент спиннера для загрузки
+const LoadingSpinner = () => (
+    <div className="loading-spinner">
+        <div className="spinner"></div>
+        <p>Updating profile...</p>
+    </div>
+);
+
 function Profile() {
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // Новое состояние для загрузки
     const [editForm, setEditForm] = useState({
         display_name: '',
         first_name: '',
@@ -78,17 +87,6 @@ function Profile() {
                 const updatedProfile = { ...profile, avatar_url: newAvatarUrl };
                 setProfile(updatedProfile);
                 localStorage.setItem('profile', JSON.stringify(updatedProfile));
-
-                // Обновляем профиль на сервере (если нужно)
-                await axios.put(
-                    `${API_BASE_URL}/api/v1/profile/me`,
-                    { avatar_url: newAvatarUrl },
-                    {
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-                        },
-                    }
-                );
             } catch (err) {
                 console.error('Avatar upload error:', err);
             }
@@ -98,10 +96,11 @@ function Profile() {
     const handleEditSubmit = async (e) => {
         e.preventDefault();
         setEditError('');
+        setIsLoading(true); // Включаем индикатор загрузки
 
         try {
             const response = await axios.put(
-                `${API_BASE_URL}/api/v1/profile`,
+                `${API_BASE_URL}/api/v1/profile/me`,
                 editForm,
                 {
                     headers: {
@@ -116,12 +115,14 @@ function Profile() {
             setIsEditing(false);
         } catch (err) {
             console.error('Edit profile error:', err);
-            setEditError(err.response?.data?.message || 'Failed to update profile');
+            setEditError(err.response?.data?.message || 'Не удалось обновить профиль');
+        } finally {
+            setIsLoading(false); // Выключаем индикатор загрузки
         }
     };
 
     if (!profile) {
-        return <div>Loading...</div>;
+        return <div>Загрузка...</div>;
     }
 
     return (
@@ -129,13 +130,13 @@ function Profile() {
             {/* Боковая панель */}
             <aside className="sidebar">
                 <div className="sidebar-header">
-                    <h2>Your Playlists</h2>
+                    <h2>Ваши плейлисты</h2>
                 </div>
                 <ul className="playlist-list">
-                    <li>Playlist 1</li>
-                    <li>Playlist 2</li>
-                    <li>Playlist 3</li>
-                    <li className="create-playlist">+ Create Playlist</li>
+                    <li>Плейлист 1</li>
+                    <li>Плейлист 2</li>
+                    <li>Плейлист 3</li>
+                    <li className="create-playlist">+ Создать плейлист</li>
                 </ul>
             </aside>
 
@@ -146,17 +147,17 @@ function Profile() {
                     <form onSubmit={handleSearch} className="search-bar">
                         <input
                             type="text"
-                            placeholder="Search for playlists, profiles, or tracks..."
+                            placeholder="Поиск плейлистов, профилей или треков..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="search-input"
                         />
                         <button type="submit" className="search-button">
-                            Search
+                            Поиск
                         </button>
                     </form>
                     <button onClick={handleLogout} className="logout-button">
-                        Log Out
+                        Выйти
                     </button>
                 </header>
 
@@ -167,7 +168,7 @@ function Profile() {
                             {profile.avatar_url ? (
                                 <img
                                     src={profile.avatar_url}
-                                    alt="Avatar"
+                                    alt="Аватар"
                                     className="profile-avatar"
                                 />
                             ) : (
@@ -184,20 +185,20 @@ function Profile() {
                                     id="avatar-upload"
                                 />
                                 <label htmlFor="avatar-upload" className="avatar-label">
-                                    Change Photo
+                                    Изменить фото
                                 </label>
                             </div>
                         </div>
                         <div className="profile-info">
-                            <h1>{profile.display_name || 'User'}</h1>
+                            <h1>{profile.display_name || 'Пользователь'}</h1>
                             <p>
-                                <strong>First Name:</strong> {profile.first_name || 'Not set'}
+                                <strong>Имя:</strong> {profile.first_name || 'Не указано'}
                             </p>
                             <p>
-                                <strong>Last Name:</strong> {profile.last_name || 'Not set'}
+                                <strong>Фамилия:</strong> {profile.last_name || 'Не указано'}
                             </p>
                             <button onClick={openEditModal} className="edit-button">
-                                Edit Profile
+                                Редактировать профиль
                             </button>
                         </div>
                     </div>
@@ -206,27 +207,27 @@ function Profile() {
                 {/* Панели */}
                 <section className="content-panels">
                     <div className="panel">
-                        <h3>Subscribed Playlists</h3>
+                        <h3>Подписанные плейлисты</h3>
                         <ul className="panel-list">
-                            <li>Subscribed Playlist 1</li>
-                            <li>Subscribed Playlist 2</li>
-                            <li>Subscribed Playlist 3</li>
+                            <li>Подписанный плейлист 1</li>
+                            <li>Подписанный плейлист 2</li>
+                            <li>Подписанный плейлист 3</li>
                         </ul>
                     </div>
                     <div className="panel">
-                        <h3>Followed Profiles</h3>
+                        <h3>Подписки на профили</h3>
                         <ul className="panel-list">
-                            <li>Profile 1</li>
-                            <li>Profile 2</li>
-                            <li>Profile 3</li>
+                            <li>Профиль 1</li>
+                            <li>Профиль 2</li>
+                            <li>Профиль 3</li>
                         </ul>
                     </div>
                     <div className="panel">
-                        <h3>Top Tracks</h3>
+                        <h3>Топ треков</h3>
                         <ul className="panel-list">
-                            <li>Track 1</li>
-                            <li>Track 2</li>
-                            <li>Track 3</li>
+                            <li>Трек 1</li>
+                            <li>Трек 2</li>
+                            <li>Трек 3</li>
                         </ul>
                     </div>
                 </section>
@@ -236,52 +237,58 @@ function Profile() {
             {isEditing && (
                 <div className="modal">
                     <div className="modal-content">
-                        <h2>Edit Profile</h2>
-                        <form onSubmit={handleEditSubmit}>
-                            <div className="form-group">
-                                <label>Display Name</label>
-                                <input
-                                    type="text"
-                                    name="display_name"
-                                    value={editForm.display_name}
-                                    onChange={handleEditChange}
-                                    placeholder="Enter display name"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>First Name</label>
-                                <input
-                                    type="text"
-                                    name="first_name"
-                                    value={editForm.first_name}
-                                    onChange={handleEditChange}
-                                    placeholder="Enter first name"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Last Name</label>
-                                <input
-                                    type="text"
-                                    name="last_name"
-                                    value={editForm.last_name}
-                                    onChange={handleEditChange}
-                                    placeholder="Enter last name"
-                                />
-                            </div>
-                            {editError && <p className="error">{editError}</p>}
-                            <div className="modal-buttons">
-                                <button type="submit" className="save-button">
-                                    Save
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={closeEditModal}
-                                    className="cancel-button"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
+                        {isLoading ? (
+                            <LoadingSpinner /> // Показываем спиннер во время загрузки
+                        ) : (
+                            <>
+                                <h2>Редактировать профиль</h2>
+                                <form onSubmit={handleEditSubmit}>
+                                    <div className="form-group">
+                                        <label>Отображаемое имя</label>
+                                        <input
+                                            type="text"
+                                            name="display_name"
+                                            value={editForm.display_name}
+                                            onChange={handleEditChange}
+                                            placeholder="Введите отображаемое имя"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Имя</label>
+                                        <input
+                                            type="text"
+                                            name="first_name"
+                                            value={editForm.first_name}
+                                            onChange={handleEditChange}
+                                            placeholder="Введите имя"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Фамилия</label>
+                                        <input
+                                            type="text"
+                                            name="last_name"
+                                            value={editForm.last_name}
+                                            onChange={handleEditChange}
+                                            placeholder="Введите фамилию"
+                                        />
+                                    </div>
+                                    {editError && <p className="error">{editError}</p>}
+                                    <div className="modal-buttons">
+                                        <button type="submit" className="save-button">
+                                            Сохранить
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={closeEditModal}
+                                            className="cancel-button"
+                                        >
+                                            Отмена
+                                        </button>
+                                    </div>
+                                </form>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
