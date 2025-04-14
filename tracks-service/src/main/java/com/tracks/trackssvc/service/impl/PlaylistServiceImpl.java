@@ -3,51 +3,123 @@ package com.tracks.trackssvc.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tracks.trackssvc.model.Playlist;
+import com.tracks.trackssvc.model.Track;
 import com.tracks.trackssvc.repository.PlaylistRepository;
+import com.tracks.trackssvc.repository.TrackRepository;
 import com.tracks.trackssvc.service.PlaylistService;
 import com.tracks.trackssvc.web.dto.PlaylistDto;
+import com.tracks.trackssvc.web.dto.TrackDto;
 import com.tracks.trackssvc.web.dto.UpdateCoverDto;
 import com.tracks.trackssvc.web.mapper.PlaylistMapper;
-import lombok.RequiredArgsConstructor;
+import com.tracks.trackssvc.web.mapper.TrackMapper;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class PlaylistServiceImpl implements PlaylistService {
-    private final PlaylistRepository playlistRepository;
-    private final PlaylistMapper playlistMapper;
-    private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
+    private final PlaylistRepository playlistRepository;
+    private final TrackRepository trackRepository;
+    private final PlaylistMapper playlistMapper;
+    private final TrackMapper trackMapper;
 
-    @Override
-    @Transactional
-    public PlaylistDto createPlaylist(PlaylistDto playlist) {
-        Playlist playlistEntity = playlistMapper.toEntity(playlist);
-        playlistEntity.setCreatedAt(new Date());
-        PlaylistDto created_playlist = playlistMapper.toDto(playlistRepository.save(playlistEntity));
-        try {
-            kafkaTemplate.send("playlist_create", objectMapper.writeValueAsString(created_playlist));
-        } catch (JsonProcessingException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error while serialising playlist data", e);
-        }
-        return created_playlist;
+    public PlaylistServiceImpl(PlaylistRepository playlistRepository,
+                               TrackRepository trackRepository,
+                               PlaylistMapper playlistMapper,
+                               TrackMapper trackMapper,
+                               ObjectMapper objectMapper) {
+        this.playlistRepository = playlistRepository;
+        this.trackRepository = trackRepository;
+        this.playlistMapper = playlistMapper;
+        this.trackMapper = trackMapper;
+        this.objectMapper = objectMapper;
     }
 
     @Override
-    public Page<PlaylistDto> findAllPlaylists(Pageable pageable) {
-        return playlistRepository.findAll(pageable).map(playlistMapper::toDto);
+    public PlaylistDto createPlaylist(PlaylistDto playlistDto) {
+        Playlist playlist = playlistMapper.toEntity(playlistDto);
+        playlist.setCreatedAt(new Date());
+        Playlist saved = playlistRepository.save(playlist);
+        return playlistMapper.toDto(saved);
+    }
+
+    @Override
+    public PlaylistDto getPlaylistById(String id) {
+        Playlist playlist = playlistRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Playlist not found"));
+        return playlistMapper.toDto(playlist);
+    }
+
+    @Override
+    public List<PlaylistDto> getAllPlaylists() {
+        return playlistRepository.findAll()
+                .stream()
+                .map(playlistMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public PlaylistDto updatePlaylist(String id, PlaylistDto playlistDto) {
+        Playlist playlist = playlistRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Playlist not found"));
+        playlist.setTitle(playlistDto.getTitle());
+        playlist.setCoverUrl(playlistDto.getCoverUrl());
+        Playlist updated = playlistRepository.save(playlist);
+        return playlistMapper.toDto(updated);
+    }
+
+    @Override
+    public void deletePlaylist(String id) {
+        Playlist playlist = playlistRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Playlist not found"));
+        playlistRepository.delete(playlist);
+    }
+
+    @Override
+    public PlaylistDto addTrackToPlaylist(String playlistId, TrackDto trackDto) {
+        Playlist playlist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Playlist not found"));
+        Track track;
+        if (trackDto.getId() != null) {
+            track = trackRepository.findById(trackDto.getId()).orElse(null);
+            if (track == null) {
+                track = trackMapper.toEntity(trackDto);
+                track = trackRepository.save(track);
+            }
+        } else {
+            track = trackMapper.toEntity(trackDto);
+            track = trackRepository.save(track);
+        }
+        playlist.getTracks().add(track);
+        Playlist updated = playlistRepository.save(playlist);
+        return playlistMapper.toDto(updated);
+    }
+
+    @Override
+    public PlaylistDto removeTrackFromPlaylist(String playlistId, String trackId) {
+        Playlist playlist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Playlist not found"));
+        Track track = trackRepository.findById(trackId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Playlist not found"));
+        playlist.getTracks().remove(track);
+        Playlist updated = playlistRepository.save(playlist);
+        return playlistMapper.toDto(updated);
+    }
+
+    @Override
+    public List<PlaylistDto> getPlaylistsByUserId(String authorId) {
+        return playlistRepository.findByAuthorId(authorId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No playlists"))
+                .stream().map(playlistMapper::toDto).toList();
     }
 
     @Transactional

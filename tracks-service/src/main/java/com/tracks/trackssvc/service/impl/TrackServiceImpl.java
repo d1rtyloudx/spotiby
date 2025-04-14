@@ -28,7 +28,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -56,6 +58,11 @@ public class TrackServiceImpl implements TrackService {
 
     public Page<TrackDto> getTracks(Pageable pageable) {
         return trackRepository.findAll(pageable).map(trackMapper::toDto);
+    }
+
+    @Override
+    public TrackDto getTrackByTitle(String filter) {
+        return trackMapper.toDto(trackRepository.findByTitle(filter).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
     }
 
     @NotNull
@@ -119,6 +126,17 @@ public class TrackServiceImpl implements TrackService {
 
         double durationSec = Double.parseDouble(durationStr);
         return (long) (durationSec * 1000);
+    }
+
+    public TrackDto getTrackById(String trackId) {
+        return trackMapper.toDto(trackRepository.findById(trackId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Track not found")));
+    }
+
+    @Override
+    public List<TrackDto> getAllTracksByAuthorId(String authorId) {
+        return trackRepository.findByAuthorId(authorId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User has no tracks")
+        ).stream().map(trackMapper::toDto).toList();
     }
 
     @Transactional

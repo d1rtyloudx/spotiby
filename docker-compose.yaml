@@ -54,6 +54,7 @@ services:
       audio:
       bus:
       search:
+      player:
 
   redis:
     image: redis:7.4.2
