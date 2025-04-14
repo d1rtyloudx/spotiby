@@ -19,7 +19,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("api/v1/stream")
 @RequiredArgsConstructor
 public class StreamController {

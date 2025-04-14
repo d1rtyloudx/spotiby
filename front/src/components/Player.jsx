@@ -1,26 +1,32 @@
 import React, { useRef, useEffect, useState } from "react";
 import * as dashjs from "dashjs";
 import { usePlayer } from "../context/PlayerContext";
+import "../styles/Player.css";
 
 const Player = () => {
-    const { currentTrack } = usePlayer();
+    const { currentTrack, setCurrentTrack } = usePlayer();
     const videoRef = useRef(null);
     const dashPlayerRef = useRef(null);
     const [volume, setVolume] = useState(0.5);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [progress, setProgress] = useState(0); // текущее время воспроизведения
-    const [duration, setDuration] = useState(0); // длительность трека
+    const [progress, setProgress] = useState(0);
+    const [duration, setDuration] = useState(0);
 
-    // Инициализация плеера только при изменении currentTrack
+    // Функция форматирования времени в формате mm:ss
+    const formatTime = (time) => {
+        if (isNaN(time)) return "00:00";
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
+        return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    };
+
+    // Инициализация плеера при изменении currentTrack
     useEffect(() => {
-        if (!currentTrack || !currentTrack.id) {
-            return;
-        }
-
-        const track = currentTrack;
+        if (!currentTrack) return;
 
         const initPlayer = (trackToPlay) => {
             try {
+                // Если плеер уже существует — сбросим его
                 if (dashPlayerRef.current) {
                     dashPlayerRef.current.reset();
                     dashPlayerRef.current = null;
@@ -28,94 +34,100 @@ const Player = () => {
                 const player = dashjs.MediaPlayer().create();
 
                 if (!videoRef.current) {
-                    console.error("videoRef не найден перед инициализацией плеера.");
+                    console.error("Player: videoRef не найден.");
                     return;
                 }
 
-                const streamUrl = `http://localhost:8085/api/v1/stream/${trackToPlay.id}/manifest.mpd`;
-                player.initialize(videoRef.current, streamUrl, true);
+                const token = localStorage.getItem("access_token");
+                if (!token) {
+                    console.error("Player: Токен авторизации отсутствует");
+                    alert("Вы не авторизованы. Пожалуйста, войдите снова.");
+                    return;
+                }
+
+                player.addRequestInterceptor((request) => {
+                    request.headers = request.headers || {};
+                    request.headers["Authorization"] = `Bearer ${token}`;
+                    return request;
+                });
+
+                const streamUrl = `http://localhost:8080/api/v1/stream/${trackToPlay.id}/manifest.mpd`;
+                player.initialize(videoRef.current, streamUrl, false);
                 player.setVolume(volume);
                 dashPlayerRef.current = player;
-                setIsPlaying(true);
 
-                // При запуске, если возможно, установим длительность
-                const updateDuration = () => {
+                videoRef.current.play()
+                    .then(() => setIsPlaying(true))
+                    .catch((err) => {
+                        console.error("Player: Ошибка воспроизведения:", err);
+                        setIsPlaying(false);
+                    });
+
+                // Обновляем длительность трека с небольшой задержкой
+                setTimeout(() => {
                     if (videoRef.current && videoRef.current.duration) {
                         setDuration(videoRef.current.duration);
                     }
-                };
-                // Попробуем обновить длительность через небольшой таймаут,
-                // чтобы videoRef успел загрузить метаданные.
-                setTimeout(updateDuration, 500);
+                }, 500);
             } catch (err) {
-                console.error("Ошибка инициализации dash-плеера:", err);
+                console.error("Player: Ошибка инициализации dash-плеера:", err);
             }
         };
 
         if (!videoRef.current) {
+            // Если videoRef ещё не установлен – ждём следующего рендера
             requestAnimationFrame(() => {
                 if (videoRef.current) {
-                    initPlayer(track);
+                    initPlayer(currentTrack);
                 } else {
-                    console.error("videoRef не доступен даже после ожидания.");
+                    console.error("Player: videoRef по-прежнему не доступен.");
                 }
             });
         } else {
-            initPlayer(track);
+            initPlayer(currentTrack);
         }
 
+        // Очистка плеера при смене трека или размонтировании компонента
         return () => {
             if (dashPlayerRef.current) {
                 dashPlayerRef.current.reset();
                 dashPlayerRef.current = null;
             }
         };
-    }, [currentTrack]); // зависим только от currentTrack
+    }, [currentTrack]);
 
-    // Отдельный эффект для обновления громкости (без перезапуска плеера)
+    // Обновление прогресса воспроизведения каждую секунду
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (videoRef.current && !videoRef.current.paused) {
+                setProgress(videoRef.current.currentTime);
+                setDuration(videoRef.current.duration || 0);
+            }
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Обновление громкости без перезапуска трека
     useEffect(() => {
         if (dashPlayerRef.current) {
             dashPlayerRef.current.setVolume(volume);
         }
     }, [volume]);
 
-    // Обновляем прогресс воспроизведения каждую секунду
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (videoRef.current && !videoRef.current.paused) {
-                setProgress(videoRef.current.currentTime);
-                if (videoRef.current.duration) {
-                    setDuration(videoRef.current.duration);
-                }
-            }
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, []);
-
-    // Функция для форматирования времени (мм:сс)
-    const formatTime = (time) => {
-        if (isNaN(time)) return "00:00";
-        const minutes = Math.floor(time / 60);
-        const seconds = Math.floor(time % 60);
-        return `${minutes.toString().padStart(2, "0")}:${seconds
-            .toString()
-            .padStart(2, "0")}`;
-    };
-
+    // Переключение воспроизведения
     const togglePlay = () => {
-        const video = videoRef.current;
-        if (!video) return;
-        if (video.paused) {
-            video.play();
-            setIsPlaying(true);
+        if (!videoRef.current) return;
+        if (videoRef.current.paused) {
+            videoRef.current.play()
+                .then(() => setIsPlaying(true))
+                .catch((err) => console.error("Player: Ошибка воспроизведения:", err));
         } else {
-            video.pause();
+            videoRef.current.pause();
             setIsPlaying(false);
         }
     };
 
-    // Обработчик перемотки: позволяет пользователю перетаскивать прогресс-бар
+    // Изменение позиции воспроизведения
     const handleProgressChange = (e) => {
         const newTime = parseFloat(e.target.value);
         if (videoRef.current) {
@@ -124,55 +136,60 @@ const Player = () => {
         }
     };
 
-    return (
-        <div className="fixed bottom-0 left-0 right-0 bg-neutral-900 text-white p-4 flex flex-col gap-2 z-50">
-            {/* Скрытый video элемент для dash.js */}
-            <video ref={videoRef} className="hidden" preload="auto" />
+    // Закрытие плеера
+    const closePlayer = () => {
+        setCurrentTrack(null);
+        if (dashPlayerRef.current) {
+            dashPlayerRef.current.reset();
+            dashPlayerRef.current = null;
+        }
+    };
 
-            {currentTrack ? (
-                <>
-                    <div className="flex items-center gap-4 w-full">
-                        <img
-                            src={currentTrack.coverUrl}
-                            alt={currentTrack.title}
-                            className="w-12 h-12 rounded"
-                        />
-                        <div className="flex-1 overflow-hidden">
-                            <div className="text-sm truncate">{currentTrack.title}</div>
-                        </div>
-                        <button
-                            onClick={togglePlay}
-                            className="text-xl hover:scale-110 transition-transform"
-                        >
-                            {isPlaying ? "⏸️" : "▶️"}
-                        </button>
-                        <input
-                            type="range"
-                            min={0}
-                            max={1}
-                            step={0.01}
-                            value={volume}
-                            onChange={(e) => setVolume(parseFloat(e.target.value))}
-                            className="w-32"
-                        />
+    if (!currentTrack) return null;
+
+    return (
+        <div className="player-container">
+            <video ref={videoRef} style={{ display: "none" }} />
+            <div className="player-center">
+                <div className="player-info">
+                    <img
+                        src={currentTrack.coverUrl}
+                        alt={currentTrack.title}
+                        className="player-cover"
+                    />
+                    <div className="player-track-info">
+                        <div className="player-track-title">{currentTrack.title}</div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs">{formatTime(progress)}</span>
-                        <input
-                            type="range"
-                            min={0}
-                            max={duration || 0}
-                            step={0.1}
-                            value={progress}
-                            onChange={handleProgressChange}
-                            className="w-full"
-                        />
-                        <span className="text-xs">{formatTime(duration)}</span>
-                    </div>
-                </>
-            ) : (
-                <div className="text-sm text-gray-400">Трек не выбран</div>
-            )}
+                    <button onClick={togglePlay} className="player-play-pause">
+                        {isPlaying ? " ⏸ " : " ▶ "}
+                    </button>
+                    <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={volume}
+                        onChange={(e) => setVolume(parseFloat(e.target.value))}
+                        className="player-volume-slider"
+                    />
+                    <button onClick={closePlayer} className="player-close-button">
+                        X
+                    </button>
+                </div>
+                <div className="player-progress">
+                    <span className="player-current-time">{formatTime(progress)}</span>
+                    <input
+                        type="range"
+                        min={0}
+                        max={duration || 0}
+                        step={0.1}
+                        value={progress}
+                        onChange={handleProgressChange}
+                        className="player-progress-slider"
+                    />
+                    <span className="player-duration">{formatTime(duration)}</span>
+                </div>
+            </div>
         </div>
     );
 };

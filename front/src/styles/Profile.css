@@ -4,6 +4,7 @@
     background: #121212;
     color: #fff;
     font-family: 'Arial', sans-serif;
+    padding-bottom: 80px;
 }
 
 /* Боковая панель */
@@ -102,7 +103,6 @@
     height: 30px;
     display: flex;
     align-items: center;
-    justify-content: center;
     white-space: nowrap;
 }
 
@@ -140,9 +140,6 @@
     font-size: 0.7rem;
     width: 90px;
     height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     white-space: nowrap;
 }
 
@@ -287,10 +284,8 @@
     padding: 1rem;
 }
 
-.panel h3 {
-    font-size: 1.1rem;
-    margin: 0 0 1rem;
-    color: #fff;
+.content-lists h3 {
+    margin-left: 40px;
 }
 
 /* Горизонтальные списки */
@@ -301,24 +296,26 @@
 .horizontal-list {
     display: flex;
     list-style: none;
-    padding: 0;
-    margin: 0;
+    padding: 10px;
+    padding-left: 20px;
+    margin-left: 20px;
     overflow: hidden;
 }
 
 .horizontal-item {
-    flex: 0 0 22%;
-    margin-right: 2%;
+    flex: 0 0 17%;
+    margin-right: 3%;
     background: #282828;
     border-radius: 8px;
     padding: 0.5rem;
     text-align: center;
     color: #fff;
-    font-size: 0.9rem;
+    font-size: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
     height: 80px;
+    width: auto;
 }
 
 .horizontal-item:hover {
@@ -327,7 +324,7 @@
 
 .pagination-controls {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     margin-top: 0.5rem;
     gap: 0.5rem;
 }
@@ -339,12 +336,12 @@
     background: #1db954;
     color: #fff;
     cursor: pointer;
-    font-size: 0.7rem;
-    width: 30px;
-    height: 30px;
+    width: auto;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: large;
 }
 
 .pagination-button:disabled {
@@ -462,23 +459,24 @@
 /* Стили для карточек подписок */
 .subscription-item {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: start;
     padding: 0.5rem;
     text-align: center;
-    height: 120px; /* Уменьшенная высота для компактности */
+    height: auto; /* Уменьшенная высота для компактности */
 }
 
 .subscription-avatar {
-    margin-bottom: 0.5rem;
+
 }
 
 .avatar-img {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     object-fit: cover;
+    margin-right: 1rem;
 }
 
 .avatar-placeholder {
@@ -517,4 +515,195 @@
     100% {
         transform: rotate(360deg);
     }
+}
+
+.no-tracks {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.add-button.small {
+    padding: 0.2rem 0.4rem;
+    border: none;
+    border-radius: 20px;
+    background: #1db954;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    width: auto;
+    height: auto;
+    align-items: center;
+    justify-content: center;
+    font-size: large;
+}
+
+.track-item {
+    display: flex;
+    transition: background-color 0.2s;
+    justify-content: start;
+}
+
+.track-item:hover {
+    background-color: #3a3a3a; /* Нейтральный фон при наведении */
+    cursor: pointer;
+}
+
+.track-cover {
+    width: 50px;
+    height: 50px;
+    margin-right: 15px;
+    object-fit: cover;
+    margin-left: 1rem;
+}
+
+.track-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.track-title {
+    font-weight: bold;
+    font-size: 14px;
+    margin-left: 1rem;
+}
+
+.track-duration {
+    color: #666;
+    font-size: 12px;
+}
+
+.track-cover-placeholder {
+    width: 40px;
+    height: 40px;
+    margin-right: 15px;
+    background-color: #282828;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #666;
+}
+
+.playlist-card {
+    width: auto;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #282828; /* светлый фон */
+    box-shadow: 0 4px 8px rgba(12, 12, 12, 0.1);
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+
+.playlist-card:hover {
+    transform: translateY(-4px);
+}
+
+.playlist-cover {
+    width: 100%;
+    border-radius: 15px;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+    background-color: #282828;
+    padding: 0.5rem;
+}
+
+.playlist-info {
+    padding: 10px;
+    text-align: center;
+}
+
+.playlist-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    word-wrap: break-word;
+}
+
+.playlist-modal {
+    max-width: 600px;
+    background: #1e1e1e;
+    color: white;
+    padding: 20px;
+    border-radius: 16px;
+}
+
+.playlist-header {
+    display: flex;
+    align-items: center;
+    background: #2a2a2a;
+    padding: 10px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.playlist-modal-cover {
+    width: 100px;
+    height: 100px;
+    margin-right: 20px;
+    border-radius: 8px;
+}
+
+.playlist-track-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.playlist-track-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px;
+    border-bottom: 1px solid #444;
+}
+.playlist-track-item:hover {
+    background-color: #3a3a3a;
+    cursor: pointer;
+}
+
+.track-cover-small {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+    border-radius: 4px;
+}
+
+.track-title {
+    flex: 1;
+    margin-left: 10px;
+}
+
+.track-duration {
+    font-size: 0.9em;
+    color: #aaa;
+}
+
+.track-search-section {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.track-search-input {
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+}
+
+.found-track-info {
+    background: #333;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.add-track-button {
+    width: auto;
 }

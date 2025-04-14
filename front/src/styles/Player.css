@@ -1,0 +1,165 @@
+.player-container {
+    position: fixed;       /* Фиксированное позиционирование */
+    bottom: 0;             /* Приклеиваем к нижней части экрана */
+    left: 0;               /* Приклеиваем к левому краю */
+    width: 100%;           /* Ширина по всему экрану */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #2d2d2d;
+    color: #ffffff;
+    padding: 10px 20px;
+    border-top: 1px solid #444;  /* Дополнительная граница сверху для визуального разделения */
+    z-index: 1000;         /* Чтобы плеер был поверх остальных элементов */
+    font-family: Arial, sans-serif;
+}
+
+/* Левая часть: обложка и информация о треке */
+.player-left {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.player-cover {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+}
+
+.player-track-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 150px; /* ограничиваем ширину, чтобы было место для других элементов */
+}
+
+.player-track-title {
+    font-size: 16px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 20px;
+    margin-left: 50px;
+}
+
+/* Центральная часть: кнопка play/pause, прогресс и время */
+.player-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+.player-info {
+    display: flex;
+    flex-direction: row;
+}
+
+.player-play-pause {
+    background: none;
+    border: none;
+    font-size: 24px;  /* размер кнопки уменьшен */
+    cursor: pointer;
+    margin: 0 50px;
+}
+.player-play-pause:hover {
+    background: none;
+}
+
+.player-progress {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.player-current-time,
+.player-duration {
+    font-size: 12px;
+    margin: 0 5px;
+}
+
+/* Стилизация ползунка прогресса */
+.player-progress-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #1ed760;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Стиль для ползунка (Chrome, Safari) */
+.player-progress-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #1aa331;
+    cursor: pointer;
+}
+
+/* Стиль для ползунка (Firefox) */
+.player-progress-slider::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #2ce46e;
+    cursor: pointer;
+}
+
+/* Правая часть: ползунок громкости и кнопка закрытия */
+.player-right {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.player-volume-slider {
+    width: 100px;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #555;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+    align-self: center;
+}
+
+.player-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.player-volume-slider::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.player-close-button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #ffffff;
+    cursor: pointer;
+    margin-left: 40px;
+}
+.player-close-button:hover {
+    background: none;
+}
+
+.modal-close {
+    flex: none;
+    width: auto;
+    height: auto;
+    background: none;
+    padding: 15px;
+    margin-bottom: 20px;
+}
